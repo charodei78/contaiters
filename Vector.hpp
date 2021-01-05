@@ -11,46 +11,28 @@
 namespace ft
 {
 	template < class T, class Allocator = std::allocator<T> >
-	class													Vector{
+	class Vector{
 
+	public:
 
-public:
+//		class base_iterator: public Iter<U>
+//		{
+//		public:
+//			base_iterator(U* p): Iter<U>(p) {};
+//			base_iterator(): Iter<U>(NULL) {};
+//			base_iterator& operator++() {++this->p;return *this;}
+//			base_iterator<U> (base_iterator<U> const &rhs): Iter<U>(rhs.getP()) {}
+//			base_iterator operator++(int) {base_iterator tmp(*this); operator++(); return tmp;}
+//			bool operator==(const base_iterator& rhs) const {return (this->p)==rhs.p;}
+//			bool operator!=(const base_iterator& rhs) const {return p(this->p)!=rhs.p;}
+//			U& operator*() {return *(this->p);}
+//			base_iterator<const T> & operator=(base_iterator<T> const &rhs) {
+//				this->p = rhs.getP();
+//			};
+//		};
 
-		template<typename U>
-		class Iter {
-		protected:
-			Iter(U* p): p(p) {};
-			~Iter() {};
-			Iter & operator=(Iter const &rhs) {
-				this->p = rhs.p;
-				return *this;
-			};
-			U* p;
-			U* getP() const
-			{
-				return this->p;
-			}
-		};
-
-		template<typename U>
-		class base_iterator: public Iter<U>
-		{
-		public:
-			base_iterator(U* p): Iter<U>(p) {};
-			base_iterator(): Iter<U>(NULL) {};
-			base_iterator& operator++() {++this->p;return *this;}
-			base_iterator<U> (base_iterator<U> const &rhs): Iter<U>(rhs.getP()) {}
-			base_iterator operator++(int) {base_iterator tmp(*this); operator++(); return tmp;}
-			bool operator==(const base_iterator& rhs) const {return (this->p)==rhs.p;}
-			bool operator!=(const base_iterator& rhs) const {return p(this->p)!=rhs.p;}
-			U& operator*() {return *(this->p);}
-			base_iterator<const T> & operator=(base_iterator<T> const &rhs) {
-				this->p = rhs.getP();
-			};
-		};
-
-		typedef base_iterator<T>                        iterator;
-		typedef base_iterator<const T>                  const_iterator;
+		typedef T*                                      iterator;
+		typedef const T*                                const_iterator;
 		typedef std::reverse_iterator<iterator>			reverse_iterator;
 		typedef std::reverse_iterator<const_iterator>	const_reverse_iterator;
 		typedef T										value_type;
@@ -62,11 +44,13 @@ public:
 		typedef std::ptrdiff_t							difference_type;
 		typedef std::size_t								size_type;
 
+	private:
 		value_type										*_memory;
 		size_type										_size;
 		size_type										_capacity;
 		allocator_type									_alloc;
 
+	public:
 		explicit Vector (const allocator_type& alloc = allocator_type())
 				: _memory(), _size(), _capacity(), _alloc(alloc) {};
 		explicit Vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
