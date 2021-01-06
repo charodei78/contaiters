@@ -10,6 +10,29 @@
 
 int 		main()
 {
+
+
+
+//	std::vector<int>		v1(100, 15);
+//	std::vector<int>		v2(10, 25);
+//
+//	std::cout << "capacity v1 = " << v1.capacity() << " capacity v2 = " << v2.capacity() << std::endl;
+//	std::cout << "size v1 = " << v1.size() << " size v2 = " << v2.size() << std::endl;
+//	v2 = v1;
+//	std::cout << "capacity v1 = " << v1.capacity() << " capacity v2 = " << v2.capacity() << std::endl;
+//	std::cout << "size v1 = " << v1.size() << " size v2 = " << v2.size() << std::endl;
+//	std::cout << v1[0] << std::endl;
+//	std::cout << v1[20] << std::endl;
+
+
+
+
+
+
+
+
+
+
 	std::vector<int>		orig;
 	ft::Vector<int>			my;
 

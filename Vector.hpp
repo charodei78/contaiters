@@ -6,7 +6,14 @@
 #define FT_CONTAINERS_VECTOR_HPP
 
 #include <memory>
+#include <type_traits>
 #include <stdexcept>
+
+#define _INPUT_ITERATOR_TEMPLATE \
+	template < \
+		class InputIterator,\
+		typename = typename std::enable_if< std::__is_input_iterator<InputIterator>::value>::type \
+	>
 
 namespace ft
 {
@@ -15,24 +22,81 @@ namespace ft
 
 	public:
 
-//		class base_iterator: public Iter<U>
-//		{
-//		public:
-//			base_iterator(U* p): Iter<U>(p) {};
-//			base_iterator(): Iter<U>(NULL) {};
-//			base_iterator& operator++() {++this->p;return *this;}
-//			base_iterator<U> (base_iterator<U> const &rhs): Iter<U>(rhs.getP()) {}
-//			base_iterator operator++(int) {base_iterator tmp(*this); operator++(); return tmp;}
-//			bool operator==(const base_iterator& rhs) const {return (this->p)==rhs.p;}
-//			bool operator!=(const base_iterator& rhs) const {return p(this->p)!=rhs.p;}
-//			U& operator*() {return *(this->p);}
-//			base_iterator<const T> & operator=(base_iterator<T> const &rhs) {
-//				this->p = rhs.getP();
-//			};
-//		};
+		class const_iterator;
+		class iterator;
 
-		typedef T*                                      iterator;
-		typedef const T*                                const_iterator;
+		class base_iterator: public std::iterator<std::input_iterator_tag, T>
+		{
+		protected:
+			T* p;
+
+			base_iterator(): p(nullptr) {};
+			base_iterator(base_iterator const &rhs) {
+				this->p = rhs.p;
+			}
+
+			base_iterator(T *p) {
+				this->p = p;
+			}
+
+			virtual base_iterator &operator=(const iterator &rhs){
+				this->p = rhs.p;
+				return *this;
+			};
+
+			base_iterator &operator=(const base_iterator &rhs){
+				this->p = rhs.p;
+				return *this;
+			};
+
+		};
+
+		class iterator: public base_iterator {
+		public:
+			iterator(): base_iterator() {};
+			iterator(T* p): base_iterator(p) {};
+			iterator(iterator const &rhs): base_iterator(rhs) {}
+			iterator& operator+=(const int i) {this->p += i;return *this;};
+			iterator& operator-=(const int i) {this->p -= i;return *this;};
+			iterator& operator++() {++this->p;return *this;};
+			iterator operator++(int) {iterator tmp(*this); operator++(); return tmp;}
+			iterator& operator--() {--this->p;return *this;};
+			iterator operator--(int) {iterator tmp(*this); operator--(); return tmp;}
+			bool operator==(const iterator& rhs) const {return (this->p)==rhs.p;}
+			bool operator!=(const iterator& rhs) const {return (this->p)!=rhs.p;}
+			T& operator*() {return *(this->p);}
+			iterator & operator=(iterator const &rhs) {
+				this->p = rhs.p;
+				return *this;
+			};
+		};
+
+		class const_iterator: public base_iterator {
+		public:
+			const_iterator(T* p): base_iterator(p) {};
+			const_iterator(): base_iterator() {};
+			const_iterator(base_iterator const &rhs): base_iterator(rhs) {}
+			const_iterator& operator++() {++this->p;return *this;};
+			const_iterator operator++(int) {const_iterator tmp(*this); operator++(); return tmp;}
+			const_iterator& operator--() {--this->p;return *this;};
+			const_iterator operator--(int) {const_iterator tmp(*this); operator--(); return tmp;}
+			const_iterator& operator+=(const int i) {this->p += i;return *this;};
+			const_iterator& operator-=(const int i) {this->p -= i;return *this;};
+			bool operator==(const const_iterator& rhs) const {return (this->p)==rhs.p;}
+			bool operator!=(const const_iterator& rhs) const {return (this->p)!=rhs.p;}
+			T& operator*() {return *(this->p);}
+			const_iterator &operator=(const_iterator const &rhs) {
+				this->p = rhs.p;
+				return *this;
+			}
+			const_iterator & operator=(iterator const &rhs) {
+				base_iterator::operator=(rhs);
+				return *this;
+			};
+		};
+
+//		typedef T*                                      iterator;
+//		typedef const T*                                const_iterator;
 		typedef std::reverse_iterator<iterator>			reverse_iterator;
 		typedef std::reverse_iterator<const_iterator>	const_reverse_iterator;
 		typedef T										value_type;
@@ -52,34 +116,49 @@ namespace ft
 
 	public:
 		explicit Vector (const allocator_type& alloc = allocator_type())
-				: _memory(), _size(), _capacity(), _alloc(alloc) {};
+				: _memory(nullptr), _size(0), _capacity(0), _alloc(alloc) {};
+
 		explicit Vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
-				:_memory(0), _size(), _capacity(), _alloc(alloc) {
+				:_memory(nullptr), _size(0), _capacity(0), _alloc(alloc) {
 			resize(n, val);
 		};
-		template <class InputIterator>
+
+		_INPUT_ITERATOR_TEMPLATE
 		Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
-				: _capacity(), _alloc(alloc) {
+				: _memory(nullptr), _size(0), _capacity(0), _alloc(alloc) {
 			iterator 	it;
 			size_type 	distance;
 
 			distance = std::distance(first, last);
 			reserve(distance);
 			it = begin();
-			for (first; first != last ; it++, first++) {
+			for (; first != last ; it++, first++) {
 				*it = *first;
 			}
 			_size = distance;
 		};
-		Vector (const Vector& x) : _size(), _capacity() {
-			assign(x.begin(), x.end());
+
+		Vector (const Vector& x) : _memory(nullptr), _size(0), _capacity(0) {
+			*this = x;
 		};
+
 		~Vector() {
 			if (_memory != 0)
 				_alloc.deallocate(_memory, _capacity);
 		};
 
-		Vector&						operator=(const Vector& x);
+		Vector&						operator=(const Vector& rhs) {
+			if (this != &rhs)
+			{
+				this->_alloc = rhs._alloc;
+				this->reserve(rhs._size);
+				this->_size = rhs._size;
+				for (int i = 0; i < rhs._size; ++i) {
+					this->_memory[i] = rhs[i];
+				}
+			}
+			return *this;
+		};
 
 
 //		Iterators
@@ -150,8 +229,10 @@ namespace ft
 				_capacity = new_capacity;
 				_memory = new_array;
 			}
-			for (size_type i = 0; i < n - _size; ++i) {
-				_memory[i + _size] = val;
+			if (n > _size) {
+				for (size_type i = 0; i < n - _size; ++i) {
+					_memory[i + _size] = val;
+				}
 			}
 			_size = n;
 		};
@@ -182,13 +263,13 @@ namespace ft
 		};
 
 		const_reference				operator[](size_type n) const {
-			operator[](n);
+			return _memory[n];
 		};
 
 		reference					at(size_type n) {
 			if (n >= _size)
 				throw std::out_of_range("Vector");
-			return operator[](n);
+			return _memory[n];
 		};
 
 		const_reference				at(size_type n) const {
@@ -196,7 +277,7 @@ namespace ft
 		};
 
 		reference					front() {
-			return at(0);
+			return _memory[0];
 		};
 
 		const_reference				front() const {
@@ -204,7 +285,7 @@ namespace ft
 		};
 
 		reference					back() {
-			return at(_size - 1);
+			return _memory[_size - 1];
 		};
 
 		const_reference				back() const {
@@ -213,13 +294,14 @@ namespace ft
 
 //		Modifiers
 
-		template <class InputIterator>
+		_INPUT_ITERATOR_TEMPLATE
 		void						assign(InputIterator first, InputIterator last) {
 			size_type				distance = std::distance(first, last);
 			iterator 				it;
 
 			resize(distance);
-			for (first; first != last; ++first, ++it) {
+			it = begin();
+			for (; first != last; ++first, ++it) {
 				*it = *first;
 			}
 			_size = distance;
@@ -253,39 +335,39 @@ namespace ft
 		};
 
 		void						insert(iterator position, size_type n, const value_type& val) {
-			reverse_iterator 		rit_src;
-			reverse_iterator 		rit_dst;
+			iterator 		        src;
+			iterator 		        dst;
 
 			if (n == 0)
 				return ;
 			resize(_size + n);
-			rit_src = rbegin() + n;
-			rit_dst = rbegin();
-			for (rit_src; rit_src != position; ++rit_src, ++rit_dst) {
-				*rit_dst = *(rit_src + 1);
-			}
-			for (rit_dst; rit_dst != position ; ++rit_dst) {
-				*rit_dst = val;
+			src = position;
+			dst = position;
+			dst += n; // todo:: not work
+			for (;dst != end(); ++src, ++dst) // rewrite old values
+				*dst = *src;
+			for (;position != src; ++position) {
+				*position = val;
 			}
 		};
 
-		template <class InputIterator>
+		_INPUT_ITERATOR_TEMPLATE
 		void						insert(iterator position, InputIterator first, InputIterator last) {
-			reverse_iterator 		rit_src;
-			reverse_iterator 		rit_dst;
+			iterator 		        src;
+			iterator 		        dst;
 			size_type 				distance;
 
 			distance = std::distance(first, last);
 			if (distance == 0)
 				return ;
 			resize(_size + distance);
-			rit_src = rbegin() - distance;
-			rit_dst = rbegin();
-			for (rit_src; rit_src != position; ++rit_src, ++rit_dst) {
-				*rit_dst = *(rit_src + 1);
-			}
-			for (first; first != last ; ++first, ++rit_dst) {
-				*rit_dst = *first;
+			src = position;
+			dst = position;
+			dst += distance;
+			for (;dst != end(); ++src, ++dst) // rewrite old values
+				*dst = *src;
+			for (; first != last ; ++first, ++position) {
+				*position = *first;
 			}
 		};
 		iterator					erase(iterator position) {
