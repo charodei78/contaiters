@@ -55,9 +55,12 @@ protected:
 		sCon::const_iterator    sBegin = sV.begin();
 		sCon::const_iterator    sEnd = sV.end();
 
+
 		ASSERT_EQ(sBegin == sEnd, mBegin == mEnd);
 		while (sBegin != sEnd)
 		{
+			if (mBegin.base() && *sBegin != *mBegin)
+				std::cout << mV.size() << "  " << mV.capacity() << std::endl;
 			EXPECT_EQ(*sBegin, *mBegin);
 			++sBegin;
 			++mBegin;
@@ -181,13 +184,38 @@ TEST_F(TestVector, iteratorTest)
 //	sIt = sItConst;
 }
 
+TEST_F(TestVector, iteratorPlusTest)
+{
+	mCon::iterator mIt = mTen.begin();
+	sCon::iterator sIt = sTen.begin();
+
+	mCon::iterator mIt2 = mIt + 4;
+	sCon::iterator sIt2 = sIt + 4;
+
+	mIt++;mIt++;mIt++;mIt++;
+	sIt++;sIt++;sIt++;sIt++;
+
+	ASSERT_EQ(mIt, mIt2);
+	ASSERT_EQ(sIt, sIt2);
+	ASSERT_EQ(*sIt, *mIt);
+	ASSERT_EQ(*sIt2, *mIt2);
+
+
+//	mIt = mItConst;
+//	sIt = sItConst;
+}
+
 TEST_F(TestVector, reverceIterator)
 {
 	mCon::reverse_iterator mBegin = mTen.rbegin();
 	mCon::reverse_iterator mEnd = mTen.rend();
+	mCon::const_reverse_iterator mBeginC = mTen.rbegin();
+	mCon::const_reverse_iterator mEndC = mTen.rend();
 
 	sCon::reverse_iterator sBegin = sTen.rbegin();
 	sCon::reverse_iterator sEnd = sTen.rend();
+	sCon::const_reverse_iterator sBeginC = sTen.rbegin();
+	sCon::const_reverse_iterator sEndC = sTen.rend();
 
 	++sBegin;
 	++mBegin;
@@ -256,8 +284,8 @@ TEST_F(TestVector, sizeTest)
 	sEmpty.push_back(10);
 	sEmpty.push_back(10);
 
-	ASSERT_EQ(mTen.size(), sTen.size());
-	vectorComparison(mTen, sTen);
+	ASSERT_EQ(mEmpty.size(), sEmpty.size());
+	vectorComparison(mEmpty, sEmpty);
 }
 
 TEST_F(TestVector, maxSizeTest)
@@ -285,11 +313,21 @@ TEST_F(TestVector, maxSizeTest)
 	sEmpty.push_back(10);
 	sEmpty.push_back(10);
 
-	ASSERT_EQ(mTen.max_size(), sTen.max_size());
+	ASSERT_EQ(mEmpty.max_size(), sEmpty.max_size());
+	vectorComparison(mEmpty, sEmpty);
+
+
+	mRandom.push_back(10);
+	mRandom.push_back(10);
+
+	sRandom.push_back(10);
+	sRandom.push_back(10);
+
+	ASSERT_EQ(mRandom.max_size(), sRandom.max_size());
 	vectorComparison(mTen, sTen);
 }
 
-TEST_F(TestVector, resizeEmptyTest)
+TEST_F(TestVector, resizeTenTest)
 {
 	mTen.resize(10);
 	sTen.resize(10);
@@ -330,6 +368,63 @@ TEST_F(TestVector, resizeEmptyTest)
 	ASSERT_EQ(mTen.size(), sTen.size());
 
 	vectorComparison(mTen, sTen);
+}
+
+TEST_F(TestVector, resizeRandomTest)
+{
+
+	mRandom.resize(10);
+	sRandom.resize(10);
+
+	vectorComparison(mRandom, sRandom);
+
+	ASSERT_EQ(mRandom.capacity(), sRandom.capacity());
+	ASSERT_EQ(mRandom.size(), sRandom.size());
+
+	mRandom.resize(5);
+	sRandom.resize(5);
+
+	vectorComparison(mRandom, sRandom);
+
+	ASSERT_EQ(mRandom.capacity(), sRandom.capacity());
+	ASSERT_EQ(mRandom.size(), sRandom.size());
+
+	mRandom.resize(11);
+	sRandom.resize(11);
+
+	vectorComparison(mRandom, sRandom);
+
+	ASSERT_EQ(mRandom.capacity(), sRandom.capacity());
+	ASSERT_EQ(mRandom.size(), sRandom.size());
+
+	mRandom.resize(16);
+	sRandom.resize(16);
+
+	vectorComparison(mRandom, sRandom);
+
+	ASSERT_EQ(mRandom.capacity(), sRandom.capacity());
+	ASSERT_EQ(mRandom.size(), sRandom.size());
+
+	mRandom.resize(0);
+	sRandom.resize(0);
+
+	ASSERT_EQ(mRandom.capacity(), sRandom.capacity());
+	ASSERT_EQ(mRandom.size(), sRandom.size());
+
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, resizeRandom30Test)
+{
+	for (int i = 0; i < 30; ++i) {
+		mRandom.resize(mRandom.size() + 1);
+		sRandom.resize(sRandom.size() + 1);
+
+		ASSERT_EQ(mRandom.capacity(), sRandom.capacity());
+		ASSERT_EQ(mRandom.size(), sRandom.size());
+
+		vectorComparison(mRandom, sRandom);
+	}
 }
 
 TEST_F(TestVector, resizeValueTest)
@@ -515,6 +610,7 @@ TEST_F(TestVector, assignRangeTest)
 	sCon::iterator      it = data.begin();
 	sCon::iterator      ite = data.end();
 
+	it.operator*();
 	mEmpty.assign(it, it + 1);
 	sEmpty.assign(it, it + 1);
 
@@ -540,32 +636,211 @@ TEST_F(TestVector, pop_backTest)
 	vectorComparison(mTen, sTen);
 }
 
-//TEST_F(TestVector, insertValueTest)
-//{
-//	mTen.insert(mTen.begin(), 10, 42);
-//	sTen.insert(sTen.begin(), 10, 42);
-//	vectorComparison(mEmpty, sEmpty);
-//
-//}
+TEST_F(TestVector, insertSingleValueEmptyTest)
+{
+	sEmpty.insert(sEmpty.begin(), 42);
+	mEmpty.insert(mEmpty.begin(), 42);
+	vectorComparison(mEmpty, sEmpty);
+}
 
-//TEST_F(TestVector, insertAtotherContainerTest)
-//{
-//	sCon        sAnotherContainer;
-//	mCon        mAnotherContainer;
-//
-//	mEmpty.insert(mAnotherContainer.begin(), 10, 42);
-//	sEmpty.insert(sAnotherContainer.begin(), 10, 42);
-//	vectorComparison(mEmpty, sEmpty);
-//}
+TEST_F(TestVector, insertSingleValueTenTest)
+{
+	sTen.insert(sTen.begin(), 42);
+	mTen.insert(mTen.begin(), 42);
+	vectorComparison(mTen, sTen);
+}
 
-//TEST_F(TestVector, insertRangeTest)
-//{
-//	sCon                data(100, 12);
-//	sCon::iterator      it = data.begin();
-//	sCon::iterator      ite = data.end();
+TEST_F(TestVector, insertSingleValueRandomTest)
+{
+	sRandom.insert(sRandom.begin(), 42);
+	mRandom.insert(mRandom.begin(), 42);
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, insertSingleValueMiddleRandomTest)
+{
+	size_t      offset;
+
+	for (int i = 0; i < 10; ++i) {
+		offset = rand() % mRandom.size() + 1;
+		ASSERT_EQ(*sRandom.insert(sRandom.begin() + offset, 42),
+		          *mRandom.insert(mRandom.begin() + offset, 42));
+		vectorComparison(mRandom, sRandom);
+	}
+}
+
+TEST_F(TestVector, insertValuesToBeginEmptyTest)
+{
+	sEmpty.insert(sEmpty.begin(), 10, 42);
+	mEmpty.insert(mEmpty.begin(), 10, 42);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertValuesToBeginTenTest)
+{
+	sTen.insert(sTen.begin(), 10, 42);
+	mTen.insert(mTen.begin(), 10, 42);
+	vectorComparison(mTen, sTen);
+}
+
+TEST_F(TestVector, insertValuesToBeginRandomTest)
+{
+	vectorComparison(mRandom, sRandom);
+
+	sRandom.insert(sRandom.begin(), 10, 42);
+	mRandom.insert(mRandom.begin(), 10, 42);
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, insertValuesToEndEmptyTest)
+{
+	sEmpty.insert(sEmpty.end(), 10, 42);
+	mEmpty.insert(mEmpty.end(), 10, 42);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertValuesToEndTenTest)
+{
+	sTen.insert(sTen.end(), 10, 42);
+	mTen.insert(mTen.end(), 10, 42);
+	vectorComparison(mTen, sTen);
+}
+
+TEST_F(TestVector, insertValuesToEndRandomTest)
+{
+	sRandom.insert(sRandom.end(), 10, 42);
+	mRandom.insert(mRandom.end(), 10, 42);
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, insertValuesToMiddleTenTest)
+{
+	sTen.insert(sTen.begin() + 4, 10, 42);
+	mTen.insert(mTen.begin() + 4, 10, 42);
+	vectorComparison(mTen, sTen);
+}
+
+TEST_F(TestVector, insertValuesToMiddleRandomTest)
+{
+	size_t offset = 100 % mRandom.size();
+	sRandom.insert(sRandom.begin() + offset, 10, 42);
+	mRandom.insert(mRandom.begin() + offset, 10, 42);
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, insertAtotherContainerTest)
+{
+	sCon        sAnotherContainer;
+	mCon        mAnotherContainer;
+
+	mEmpty.insert(mAnotherContainer.begin(), 10, 42);
+	sEmpty.insert(sAnotherContainer.begin(), 10, 42);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertRangeBeginEmptyTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
 //	mCon::iterator      mite = mEmpty.end();
-//
-//	mEmpty.insert(mEmpty.begin(), it, ite);
-//	sEmpty.insert(sEmpty.begin(), it, ite);
-//	vectorComparison(mEmpty, sEmpty);
-//}
+
+	mEmpty.insert(mEmpty.begin(), it, ite);
+	sEmpty.insert(sEmpty.begin(), it, ite);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertRangeBeginTenTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
+
+	mEmpty.insert(mEmpty.begin(), it, ite);
+	sEmpty.insert(sEmpty.begin(), it, ite);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertRangeBeginRandomTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
+
+	mEmpty.insert(mEmpty.begin(), it, ite);
+	sEmpty.insert(sEmpty.begin(), it, ite);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertRangeEndEmptyTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
+//	mCon::iterator      mite = mEmpty.end();
+
+	mEmpty.insert(mEmpty.end(), it, ite);
+	sEmpty.insert(sEmpty.end(), it, ite);
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, insertRangeEndTenTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
+
+	mTen.insert(mTen.end(), it, ite);
+	sTen.insert(sTen.end(), it, ite);
+	vectorComparison(mTen, sTen);
+}
+
+TEST_F(TestVector, insertRangeEndRandomTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
+
+	mRandom.insert(mRandom.end(), it, ite);
+	sRandom.insert(sRandom.end(), it, ite);
+	vectorComparison(mRandom, sRandom);
+}
+
+
+TEST_F(TestVector, insertRangeMiddleRandomTest)
+{
+	sCon                data(100, 12);
+	sCon::iterator      it = data.begin();
+	sCon::iterator      ite = data.end();
+
+	size_t offset = rand() % mRandom.size() + 1;
+	mRandom.insert(mRandom.begin() + offset, it, ite);
+	sRandom.insert(sRandom.begin() + offset, it, ite);
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, eriseRandomTest)
+{
+	for (int i = 0; i < mRandom.size(); ++i) {
+		ASSERT_EQ(*mRandom.erase(mRandom.begin()), *sRandom.erase(sRandom.begin()));
+	}
+}
+
+TEST_F(TestVector, eriseRandomOffsetTest)
+{
+	size_t offset;
+
+	for (int i = 0; i < mRandom.size(); ++i) {
+		offset = rand() % mRandom.size();
+		ASSERT_EQ(*mRandom.erase(mRandom.begin() + offset), *sRandom.erase(sRandom.begin() + offset));
+	}
+	EXPECT_EQ(mRandom.erase(mRandom.begin())[0], sRandom.erase(sRandom.begin())[0]);
+}
+
+TEST_F(TestVector, eriseRandomRangeTest)
+{
+	for (int i = 0; i < mRandom.size(); ++i) {
+		ASSERT_EQ(*mRandom.erase(mRandom.begin()), *sRandom.erase(sRandom.begin()));
+	}
+
+}
