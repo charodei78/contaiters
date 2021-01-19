@@ -7,8 +7,15 @@
 
 #include <memory>
 #include <cstddef>
+#include <stdlib.h>
+#include <type_traits>
+#include <stdexcept>
 
-
+#define _INPUT_ITERATOR_TEMPLATE \
+	template < \
+		class InputIterator,\
+		typename = typename std::enable_if< std::__is_input_iterator<InputIterator>::value>::type \
+	>
 
 namespace ft
 {
@@ -23,8 +30,12 @@ namespace ft
 		typedef struct									s_list {
 			T											data;
 			struct list_t								*next;
+			struct list_t								*prev;
 		}												t_list;
 
+	public:
+		class const_iterator;
+		class iterator;
 
 		typedef T										value_type;
 		typedef Allocator								allocator_type;
@@ -32,63 +43,368 @@ namespace ft
 		typedef typename Allocator::const_reference		const_reference;
 		typedef typename Allocator::pointer				pointer;
 		typedef typename Allocator::const_pointer		const_pointer;
-		typedef List<T>									iterator;
-		typedef List<T>									const_iterator;
 		typedef std::reverse_iterator<iterator>			reverse_iterator;
 		typedef std::reverse_iterator<const_iterator>	const_reverse_iterator;
 		typedef std::ptrdiff_t							difference_type;
 		typedef std::size_t								size_type;
 
-		List();
-		~List();
-		List&						operator=(const List& x);
+	private:
+		t_list  										*_begin = nullptr;
+		t_list  										*_end = nullptr;
+		size_type										_size;
+		allocator_type									_alloc;
+
+		t_list              *_allocate_node(value_type &val = 0) {
+			t_list          *node = static_cast<t_list*>(_alloc.allocate(1));
+			node->next = node;
+			node->prev = node;
+			node->data = val;
+			return node;
+		}
+
+		void                _deallocateNode(t_list *node) {
+			_alloc.deallocate(node, 1);
+		}
+
+		template<typename Y>
+		size_type           max(Y a, Y b) {
+			return a > b ? a : b;
+		}
+		template<typename Y>
+		size_type           min(Y a, Y b) {
+			return a > b ? a : b;
+		}
+
+	public:
+		explicit List (const allocator_type& alloc = allocator_type())
+				: _begin(_allocate_node()), _end(_begin), _size(0), _alloc(alloc){};
+
+		explicit List (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
+				:_begin(nullptr), _size(0), _alloc(alloc) {
+			resize(n, val);
+		};
+
+		_INPUT_ITERATOR_TEMPLATE
+		List (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
+				: _begin(nullptr), _size(0), _alloc(alloc) {
+			size_type 	distance;
+
+			distance = std::distance(first, last);
+			while (distance > 0) {
+				push_back(*first);
+				distance--;
+			}
+			_size = distance;
+		};
+		List (const List& x) {
+			*this = x;
+		};
+		~List() {
+			clear();
+		};
+		List&						operator=(const List& rhs) {
+			iterator                begin = rhs.begin();
+			iterator                end = rhs.end();
+
+			if (this != &rhs) {
+				while (_size)
+					erase(begin());
+				this->_alloc = rhs._alloc;
+				while (begin != end)
+					push_back(*(begin++));
+			}
+			return *this;
+		}
+
+
+	private:
+		class base_iterator: public std::iterator<std::input_iterator_tag, T>
+		{
+		protected:
+			t_list *_p;
+
+			base_iterator(): _p(nullptr) {};
+			base_iterator(base_iterator const &rhs): _p(nullptr) {
+				this->_p = rhs._p;
+			}
+
+			base_iterator(pointer p) {
+				this->_p = p;
+			}
+
+			virtual base_iterator &operator=(const iterator &rhs){
+				this->_p = rhs._p;
+				return *this;
+			};
+
+			virtual base_iterator &operator=(const base_iterator &rhs){
+				this->_p = rhs._p;
+				return *this;
+			};
+		};
+	public:
+
+		class iterator: public base_iterator {
+		public:
+			iterator(): base_iterator() {};
+			iterator(t_list *p): base_iterator(p) {};
+			iterator(iterator const &rhs): base_iterator(rhs) {}
+			~iterator(){};
+			t_list           *base() { return this->_p; }
+			reference        operator* () const { return *(this->_p->data); }
+			pointer          operator->() const { return pointer(this->_p->data); };
+			iterator&        operator++() { this->_p = this->_p->next;return *this; };
+			iterator         operator++(int) { iterator tmp(*this); operator++(); return tmp; }
+			iterator&        operator--() {this->_p = this->_p->prev;return *this; };
+			iterator         operator--(int) { iterator tmp(*this); operator--(); return tmp; }
+			iterator         &operator=(iterator const &rhs) {
+				this->_p = rhs._p;
+				return *this;
+			};
+		};
+
+		class const_iterator: public base_iterator {
+		public:
+			const_iterator(pointer p): base_iterator(p) {};
+			const_iterator(): base_iterator() {};
+			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
+			~const_iterator(){};
+			t_list                  base() { return this->_p; }
+			reference               operator* () const { return *(this->_p->data); }
+			pointer                 operator->() const { return pointer(this->_p->data); };
+			const_iterator&         operator++() { this->_p = this->_p->next;return *this; };
+			const_iterator          operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
+			const_iterator&         operator--() {this->_p = this->_p->prev;return *this; };
+			const_iterator          operator--(int) { const_iterator tmp(*this); operator--(); return tmp; }
+			const_iterator          &operator=(const_iterator const &rhs) {
+				this->_p = rhs._p;
+				return *this;
+			}
+			const_iterator & operator=(iterator const &rhs) {
+				base_iterator::operator=(rhs);
+				return *this;
+			};
+		};
 
 //		Iterators
-		iterator					begin();
-		const_iterator 				begin() const;
-		iterator					end();
-		const_iterator 				end() const;
-		reverse_iterator			rbegin();
-		const_reverse_iterator		rbegin() const;
-		reverse_iterator			rend();
-		const_reverse_iterator		rend() const;
+		iterator					begin() {
+			return iterator(_begin);
+		};
+		const_iterator 				begin() const {
+			return const_iterator(_begin);
+		};
+		iterator					end() {
+			return iterator(_end);
+		}
+		const_iterator 				end() const {
+			return const_iterator(_end);
+		};
+		reverse_iterator			rbegin() {
+			return reverse_iterator(_end);
+		};
+		const_reverse_iterator		rbegin() const {
+			return const_reverse_iterator(_end);
+		};
+		reverse_iterator			rend() {
+			return reverse_iterator(_begin);
+		};
+		const_reverse_iterator		rend() const {
+			return const_reverse_iterator(_begin);
+		};
 
 //		Capacity
-		bool 						empty() const;
-		size_type					size() const;
-		size_type					max_size() const;
+		bool 						empty() const {
+			return _size;
+		};
+		size_type					size() const {
+			return _size;
+		};
+		size_type					max_size() const {
+			return size_type(-1) / sizeof(value_type);
+		};
 
 //		Element access
 
-		reference					front();
-		const_reference				front() const;
-		reference					back();
-		const_reference				back() const;
+		reference					front() {
+			return _begin->data;
+		};
+		const_reference				front() const {
+			return _begin->data;
+		};
+		reference					back() {
+			return _end->data;
+		};
+		const_reference				back() const {
+			return _end->data;
+		};
 
 //		Modifiers
 
-		template <class InputIterator>
-		void						assign(InputIterator first, InputIterator last);
-		void						assign(size_type n, const value_type& val);
-		void						push_front(const value_type& val);
-		void						push_front(value_type&& val);
-		void						pop_front();
-		void						push_back(const value_type& val);
-		void						push_back(value_type&& val);
-		void						pop_back();
-		iterator 					insert(iterator position, const value_type& val);
-		void						insert(iterator position, size_type n, const value_type& val);
-		template <class InputIterator>
-		void						insert(iterator position, InputIterator first, InputIterator last);
-		iterator					erase(iterator position);
-		iterator					erase(iterator first, iterator last);
-		void						swap(List& x);
-		void						resize(size_type n, value_type val = value_type());
-		void						clear();
+		_INPUT_ITERATOR_TEMPLATE
+		void						assign(InputIterator first, InputIterator last) {
+			while (_size)
+				erase(begin());
+			while (first != last)
+				push_back(*first);
+		};
+		void						assign(size_type n, const value_type& val) {
+			while (_size)
+				erase(begin());
+			while (n-- > 0)
+				push_back(val);
+		};
+		void						push_front(const value_type& val) {
+			t_list                  *res = _allocate_node(val);
+
+			res->next = _begin;
+			res->begin = _end;
+			_begin = res;
+			++_size;
+		};
+		void						pop_front() {
+			erase(begin());
+		};
+		void						push_back(const value_type& val) {
+			t_list                  *res = _allocate_node(val);
+
+			res->next->prev = _end->prev;
+			_end->prev->next = res;
+			res->next = _end;
+			_end->prev = res;
+			++_size;
+		};
+		void						pop_back() {
+			erase(--end());
+		};
+		iterator 					insert(iterator position, const value_type& val) {
+			t_list                  *positionBase = position.base();
+			t_list                  *res = _allocate_node(val);
+
+			res->next = positionBase->next;
+			res->next->prev = res;
+			res->prev = positionBase;
+			positionBase->next = res;
+			_size++;
+			_begin = _end->next;
+		};
+		void						insert(iterator position, size_type n, const value_type& val) {
+			t_list                  *positionBase = position.base();
+			t_list                  *begin;
+			t_list                  *end;
+
+			if (n) {
+				begin = _allocate_node(val);
+				end = begin;
+				++_size;
+				while (--n) {
+					++_size;
+					end->next = _allocate_node(val);
+					end->next->prev = end;
+					end = end->next;
+				}
+				end->next = positionBase->next;
+				end->next->prev = end;
+				begin->prev = positionBase;
+				positionBase->next = begin;
+				_begin = _end->next;
+			}
+		};
+		_INPUT_ITERATOR_TEMPLATE
+		void						insert(iterator position, InputIterator first, InputIterator last) {
+			t_list                  *positionBase = position.base();
+			t_list                  *begin;
+			t_list                  *end;
+
+			if (std::distance(first, last)) {
+				begin = _allocate_node(*(first++));
+				end = begin;
+				++_size;
+				while (first != last) {
+					++_size;
+					end->next = _allocate_node(*(first++));
+					end->next->prev = end;
+					end = end->next;
+				}
+				end->next = positionBase->next;
+				end->next->prev = end;
+				begin->prev = positionBase;
+				positionBase->next = begin;
+				_begin = _end->next;
+			}
+		};
+		iterator					erase(iterator position) {
+			t_list                  *positionBase = position.base();
+			t_list                  *tmp;
+
+			if (positionBase == _end)
+				return _end;
+			tmp = positionBase->next;
+			positionBase->prev->next = tmp;
+			tmp->prev = positionBase->prev;
+				_deallocateNode(positionBase);
+			--_size;
+			return tmp;
+		};
+		iterator					erase(iterator first, iterator last) {
+			t_list                  *firstBase = first.base();
+			t_list                  *lastBase = last.base();
+			t_list                  *tmp;
+
+			if (firstBase == _end)
+				return _end;
+			tmp = lastBase->next;
+			firstBase->prev->next = tmp;
+			tmp->prev = firstBase->prev;
+			while (firstBase != lastBase)
+				_deallocateNode(firstBase++);
+			return  tmp;
+		};
+		void						swap(List& rhs) {
+			t_list                  *beginTmp = _begin;
+			t_list                  *endTmp = _end;
+			size_type               sizeTmp = _size;
+			allocator_type          allocTmp = _alloc;
+
+			_begin  = rhs._begin;
+			_end    = rhs._end;
+			_size   = rhs._size;
+			_alloc  = rhs._alloc;
+			rhs._begin = beginTmp;
+			rhs._end = endTmp;
+			rhs._size = sizeTmp;
+			rhs._alloc = allocTmp;
+		};
+		void						resize(size_type n, value_type val = value_type()) {
+			t_list                  new_list;
+
+			if (n > _size)
+				insert(--(end()), n - _size);
+			else {
+				while (n-- < _size)
+					erase(--end());
+			}
+		};
+		void						clear() {
+			while (_size)
+				erase(begin());
+		};
 
 //		Operations
 
-		void						splice(iterator position, List& x);
+		void						splice(iterator position, List& rhs) {
+			iterator                positionBase;
+
+			if (this == &rhs)
+				return;
+			positionBase = position.base();
+			positionBase->prev->next = rhs._begin;
+			rhs._begin->prev = positionBase->prev;
+			positionBase->prev = rhs._end->prev;
+			rhs._end->prev->next = positionBase->prev;
+			rhs._begin = rhs._end;
+			rhs._end->next = rhs._end;
+			rhs._end->prev = rhs._end;
+		};
 		void						splice(iterator position, List& x, iterator i);
 		void						splice(iterator position, List& x, iterator first, iterator last);
 		void						remove(const value_type& val);
@@ -102,7 +418,7 @@ namespace ft
 		void						merge(List& x, Compare comp);
 		void						sort();
 		template <class Compare>
-  		void						sort(Compare comp);
+		void						sort(Compare comp);
 		void						reverse();
 	};
 

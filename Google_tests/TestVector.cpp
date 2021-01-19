@@ -55,6 +55,11 @@ protected:
 		sCon::const_iterator    sBegin = sV.begin();
 		sCon::const_iterator    sEnd = sV.end();
 
+		if (!mV.empty())
+			ASSERT_EQ(*sBegin, *mBegin);
+		else if (mV.capacity())
+			ASSERT_EQ(mV[0], sV[0]);
+		ASSERT_EQ(sBegin == sEnd, mBegin == mEnd);
 
 		ASSERT_EQ(sBegin == sEnd, mBegin == mEnd);
 		while (sBegin != sEnd)
@@ -842,5 +847,33 @@ TEST_F(TestVector, eriseRandomRangeTest)
 	for (int i = 0; i < mRandom.size(); ++i) {
 		ASSERT_EQ(*mRandom.erase(mRandom.begin()), *sRandom.erase(sRandom.begin()));
 	}
+}
 
+TEST_F(TestVector, swapTest)
+{
+	mEmpty.swap(mRandom);
+	sEmpty.swap(sRandom);
+	vectorComparison(mEmpty, sEmpty);
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, clearRandomTest)
+{
+	sRandom.clear();
+	mRandom.clear();
+	vectorComparison(mRandom, sRandom);
+}
+
+TEST_F(TestVector, clearEmptyTest)
+{
+	sEmpty.clear();
+	mEmpty.clear();
+	vectorComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestVector, clearTenTest)
+{
+	sTen.clear();
+	mTen.clear();
+	vectorComparison(mTen, sTen);
 }

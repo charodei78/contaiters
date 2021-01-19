@@ -8,6 +8,18 @@
 #include <iostream>
 #include "Vector.hpp"
 
+typedef struct									s_list {
+	s_list(): data(0), next(nullptr), prev(nullptr){};
+	int											data;
+	struct list_t								*next;
+	struct list_t								*prev;
+} t_list;
+
+class A {
+public:
+	A(){};
+};
+
 int 		main()
 {
 
@@ -25,45 +37,77 @@ int 		main()
 //	std::cout << v1[20] << std::endl;
 
 
+//	t_list *test = new t_list;
+//	std::cout << test->data << std::endl;
+//	std::cout << test->next << std::endl;
+//	std::cout << test->prev << std::endl;
+//std::vector<A*> test;
+std::list<int> list(0);
 
+size_t a = 100;
+size_t b = 1000;
 
+std::cout << (int)a - (int)b;
 
+	std::list<int>::iterator begin = list.begin();
+	std::list<int>::iterator end = list.end();
+	list.insert(end, 2);
+	begin = list.begin();
+	end = list.end();
+	list.push_back(4);
+	begin = list.begin();
+	end = list.end();
+	list.push_back(4);
+	begin = list.begin();
+	end = list.end();
+	list.push_back(4);
+	list.push_back(4);
+	list.push_back(4);
 
+//	test.push_back(new A);
+//	test.push_back(new A);
+//	test.push_back(new A);
+//	test.push_back(new A);
+//	test.push_back(new A);
+//
+//	std::vector<A*>::iterator it = test.begin();
+//
+//	it += 3;
+//
+//	test.erase(it);
+//	std::cout << test.size();
 
-
-
-
-	std::vector<int>		orig;
-	ft::Vector<int>			my;
-
-	my.push_back(1);
-	std::cout << "value [0] = " << my[0] << std::endl;
-	std::cout << "capacity = " << my.capacity() << std::endl;
-	std::cout << "size = " << my.size() << std::endl;
-	my.push_back(2);
-	std::cout << "value [1] = " << my[1] << std::endl;
-	std::cout << "capacity = " << my.capacity() << std::endl;
-	std::cout << "size = " << my.size() << std::endl;
-	my.push_back(3);
-	std::cout << "value [2] = " << my[2] << std::endl;
-	std::cout << "capacity = " << my.capacity() << std::endl;
-	std::cout << "size = " << my.size() << std::endl;
-
-	ft::Vector<int>::iterator it(my.begin());
-	ft::Vector<int>::iterator it2 = my.begin();
-	ft::Vector<int>::const_iterator     const_it2 = my.begin();
-	ft::Vector<int>::const_iterator     const_it = it;
-//	ft::Vector<int>::iterator it3 = const_it2;
-//	it = const_it;
-	const_it = it;
-	const_it = const_it2;
-	std::cout << "iter  = " << *(const_it) << std::endl;
-
-
-	for (; it != my.end(); it++)
-		std::cout << "iter  = " << *it << std::endl;
-	ft::Vector<int>::iterator     test = it;
-	ft::Vector<int>::const_iterator     test2 = const_it;
+//	std::vector<int>		orig;
+//	ft::Vector<int>			my;
+//
+//	my.push_back(1);
+//	std::cout << "value [0] = " << my[0] << std::endl;
+//	std::cout << "capacity = " << my.capacity() << std::endl;
+//	std::cout << "size = " << my.size() << std::endl;
+//	my.push_back(2);
+//	std::cout << "value [1] = " << my[1] << std::endl;
+//	std::cout << "capacity = " << my.capacity() << std::endl;
+//	std::cout << "size = " << my.size() << std::endl;
+//	my.push_back(3);
+//	std::cout << "value [2] = " << my[2] << std::endl;
+//	std::cout << "capacity = " << my.capacity() << std::endl;
+//	std::cout << "size = " << my.size() << std::endl;
+//
+//	ft::Vector<int>::iterator it(my.begin());
+//	ft::Vector<int>::iterator it2 = my.begin();
+//	ft::Vector<int>::const_iterator     const_it2 = my.begin();
+//	ft::Vector<int>::const_iterator     const_it = it;
+////	ft::Vector<int>::iterator it3 = const_it2;
+////	it = const_it;
+//	const_it = it;
+//	const_it = const_it2;
+//	std::cout << "iter  = " << *(const_it) << std::endl;
+//
+//
+//	for (; it != my.end(); it++)
+//		std::cout << "iter  = " << *it << std::endl;
+//	ft::Vector<int>::iterator     test = it;
+//	ft::Vector<int>::const_iterator     test2 = const_it;
 
 
 

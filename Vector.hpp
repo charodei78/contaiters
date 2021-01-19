@@ -22,13 +22,9 @@ namespace ft
 
 	public:
 
-		template<class _Iter> class _iterable;
-
 		class const_iterator;
 		class iterator;
 
-//		typedef _iterable<const T*>                      const_iterator;
-//		typedef _iterable<T*>                            iterator;
 		typedef std::reverse_iterator<iterator>			reverse_iterator;
 		typedef std::reverse_iterator<const_iterator>	const_reverse_iterator;
 		typedef T										value_type;
@@ -115,6 +111,7 @@ namespace ft
 		class iterator: public base_iterator {
 		public:
 			iterator(): base_iterator() {};
+			~iterator(){};
 			iterator(pointer p): base_iterator(p) {};
 			iterator(iterator const &rhs): base_iterator(rhs) {}
 			reference        operator* () const { return *(this->_p); }
@@ -146,6 +143,7 @@ namespace ft
 		public:
 			const_iterator(pointer p): base_iterator(p) {};
 			const_iterator(): base_iterator() {};
+			~const_iterator(){};
 			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
 			reference        operator*() const { return *(this->_p); }
 			pointer          operator->() const { return pointer(this->_p); };
@@ -218,8 +216,8 @@ namespace ft
 		Vector&						operator=(const Vector& rhs) {
 			if (this != &rhs)
 			{
-				this->_alloc = rhs._alloc;
 				this->reserve(rhs._size);
+				this->_alloc = rhs._alloc;
 				this->_size = rhs._size;
 				for (int i = 0; i < rhs._size; ++i) {
 					this->_memory[i] = rhs[i];
@@ -490,16 +488,19 @@ namespace ft
 		};
 
 		void						swap(Vector& x) {
-			value_type				tmp_memory = x._memory ;
-			size_type				tmp_size = x._size ;
-			size_type				tmp_capacity = x._capacity ;
+			value_type				*memoryTmp = x._memory ;
+			size_type				sizeTmp = x._size ;
+			size_type				capacityTmp = x._capacity ;
+			allocator_type          allocatorTmp = x._alloc;
 
-			x._memory = this->_memory;
-			x._size = this->_size;
-			x._capacity	 = this->_capacity;
-			this->_memory = tmp_memory;
-			this->_size = tmp_size;
-			this->_capacity	= tmp_capacity;
+			x._memory       = this->_memory;
+			x._size         = this->_size;
+			x._capacity	    = this->_capacity;
+			x._alloc        = this->_alloc;
+			this->_alloc    = allocatorTmp;
+			this->_memory   = memoryTmp;
+			this->_size     = sizeTmp;
+			this->_capacity	= capacityTmp;
 		};
 		void						clear() {
 			_size = 0;
