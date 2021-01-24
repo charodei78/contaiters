@@ -160,7 +160,7 @@ namespace ft
 			iterator         operator++(int) { iterator tmp(*this); operator++(); return tmp; }
 			iterator&        operator--() {this->_p = this->_p->prev;return *this; };
 			iterator         operator--(int) { iterator tmp(*this); operator--(); return tmp; }
-			iterator         operator==(iterator const&rhs) { return this->base() == rhs.base(); }
+			bool             operator==(iterator const&rhs) const { return this->base() == rhs.base(); }
 			iterator         &operator=(iterator const &rhs) {
 				this->_p = rhs._p;
 				return *this;
@@ -180,7 +180,7 @@ namespace ft
 			const_iterator          operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
 			const_iterator&         operator--() {this->_p = this->_p->prev;return *this; };
 			const_iterator          operator--(int) { const_iterator tmp(*this); operator--(); return tmp; }
-			bool                    operator==(const_iterator const&rhs) { return this->base() == rhs.base(); }
+			bool                    operator==(const_iterator const&rhs) const { return this->base() == rhs.base(); }
 			const_iterator          &operator=(const_iterator const &rhs) {
 				this->_p = rhs._p;
 				return *this;
@@ -286,12 +286,13 @@ namespace ft
 			t_list                  *positionBase = position.base();
 			t_list                  *res = _allocate_node(val);
 
-			res->next = positionBase->next;
-			res->next->prev = res;
-			res->prev = positionBase;
-			positionBase->next = res;
-			_size++;
+			res->next = positionBase;
+			positionBase->prev->next = res;
+			res->prev = positionBase->prev;
+			positionBase->prev = res;
+			++_size;
 			_begin = _end->next;
+			return res;
 		};
 		void						insert(iterator position, size_type n, const value_type& val) {
 			t_list                  *positionBase = position.base();
@@ -308,10 +309,10 @@ namespace ft
 					end->next->prev = end;
 					end = end->next;
 				}
-				end->next = positionBase->next;
-				end->next->prev = end;
-				begin->prev = positionBase;
-				positionBase->next = begin;
+				end->next = positionBase;
+				positionBase->prev->next = begin;
+				begin->prev = positionBase->prev;
+				positionBase->prev = end;
 				_begin = _end->next;
 			}
 		};
@@ -331,10 +332,10 @@ namespace ft
 					end->next->prev = end;
 					end = end->next;
 				}
-				end->next = positionBase->next;
-				end->next->prev = end;
-				begin->prev = positionBase;
-				positionBase->next = begin;
+				end->next = positionBase;
+				positionBase->prev->next = begin;
+				begin->prev = positionBase->prev;
+				positionBase->prev = end;
 				_begin = _end->next;
 			}
 		};
@@ -353,18 +354,18 @@ namespace ft
 		iterator					erase(iterator first, iterator last) {
 			t_list                  *firstBase = first.base();
 			t_list                  *lastBase = last.base();
-			t_list                  *tmp;
+			t_list                  *ret;
 
-			if (firstBase == _end)
-				return _end;
-			tmp = lastBase->next;
-			firstBase->prev->next = tmp;
-			tmp->prev = firstBase->prev;
+			firstBase->prev->next = lastBase;
+			lastBase->prev = firstBase->prev;
 			while (firstBase != lastBase) {
-				_deallocateNode(firstBase++);
+				ret = firstBase->next;
+				_deallocateNode(firstBase);
+				firstBase = ret;
 				--_size;
 			}
-			return  tmp;
+			_begin = _end->next;
+			return  ret;
 		};
 		void						swap(List& rhs) {
 			t_list                  *beginTmp = _begin;
@@ -385,11 +386,10 @@ namespace ft
 			t_list                  new_list;
 
 			if (n > _size)
-				insert(--(end()), n - _size);
-			else {
-				while (n-- < _size)
+				insert(end(), n - _size, val);
+			else
+				while (n < _size)
 					erase(--end());
-			}
 		};
 		void						clear() {
 			while (_size)
@@ -399,18 +399,19 @@ namespace ft
 //		Operations
 
 		void						splice(iterator position, List& rhs) {
-			iterator                positionBase;
+			t_list                  *positionBase;
 
-			if (this == &rhs)
-				return;
 			positionBase = position.base();
 			positionBase->prev->next = rhs._begin;
 			rhs._begin->prev = positionBase->prev;
 			positionBase->prev = rhs._end->prev;
-			rhs._end->prev->next = positionBase->prev;
+			rhs._end->prev->next = positionBase;
 			rhs._begin = rhs._end;
 			rhs._end->next = rhs._end;
 			rhs._end->prev = rhs._end;
+			_size += rhs._size;
+			rhs._size = 0;
+			_begin = _end->next;
 		};
 
 		void						splice(iterator position, List& x, iterator i) {

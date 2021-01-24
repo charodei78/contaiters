@@ -411,3 +411,339 @@ TEST_F(TestList, pop_x2_back_two)
 	sTwo.pop_back();
 	listComparison(mTwo, sTwo);
 }
+
+TEST_F(TestList, insert_begin_empty)
+{
+	ASSERT_EQ(mTwo.insert(mTwo.begin(), 10), mTwo.begin());
+	ASSERT_EQ(sTwo.insert(sTwo.begin(), 10), sTwo.begin());
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, insert_begin_ten)
+{
+	ASSERT_EQ(mEmpty.insert(mEmpty.begin(), 10), mEmpty.begin());
+	ASSERT_EQ(sEmpty.insert(sEmpty.begin(), 10), sEmpty.begin());
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, insert_begin_one)
+{
+	ASSERT_EQ(mTen.insert(mTen.begin(), 10), mTen.begin());
+	ASSERT_EQ(sTen.insert(sTen.begin(), 10), sTen.begin());
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, insert_begin_two)
+{
+	ASSERT_EQ(mOne.insert(mOne.begin(), 10), mOne.begin());
+	ASSERT_EQ(sOne.insert(sOne.begin(), 10), sOne.begin());
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, insert_many_begin_empty)
+{
+	mEmpty.insert(mEmpty.begin(), 10, 20);
+	sEmpty.insert(sEmpty.begin(), 10, 20);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, insert_many_begin_ten)
+{
+	mTen.insert(mTen.begin(), 10, 20);
+	sTen.insert(sTen.begin(), 10, 20);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, insert_many_begin_one)
+{
+	mOne.insert(mOne.begin(), 10, 20);
+	sOne.insert(sOne.begin(), 10, 20);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, insert_many_begin_two)
+{
+	mTwo.insert(mTwo.begin(), 10, 20);
+	sTwo.insert(sTwo.begin(), 10, 20);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, insert_range_begin_empty)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mEmpty.insert(mEmpty.begin(), randomArray.begin(), randomArray.begin() + range);
+	sEmpty.insert(sEmpty.begin(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, insert_range_begin_ten)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mTen.insert(mTen.begin(), randomArray.begin(), randomArray.begin() + range);
+	sTen.insert(sTen.begin(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, insert_range_begin_one)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mOne.insert(mOne.begin(), randomArray.begin(), randomArray.begin() + range);
+	sOne.insert(sOne.begin(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, insert_range_begin_two)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mTwo.insert(mTwo.begin(), randomArray.begin(), randomArray.begin() + range);
+	sTwo.insert(sTwo.begin(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mTwo, sTwo);
+}
+
+
+
+
+
+TEST_F(TestList, insert_end_empty)
+{
+	ASSERT_EQ(mTwo.insert(mTwo.end(), 10), --mTwo.end());
+	ASSERT_EQ(sTwo.insert(sTwo.end(), 10), --sTwo.end());
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, insert_end_ten)
+{
+	ASSERT_EQ(mEmpty.insert(mEmpty.end(), 10), --mEmpty.end());
+	ASSERT_EQ(sEmpty.insert(sEmpty.end(), 10), --sEmpty.end());
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, insert_end_one)
+{
+	ASSERT_EQ(mTen.insert(mTen.end(), 10), --mTen.end());
+	ASSERT_EQ(sTen.insert(sTen.end(), 10), --sTen.end());
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, insert_end_two)
+{
+	ASSERT_EQ(mOne.insert(mOne.end(), 10), --mOne.end());
+	ASSERT_EQ(sOne.insert(sOne.end(), 10), --sOne.end());
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, insert_many_end_empty)
+{
+	mEmpty.insert(mEmpty.end(), 10, 20);
+	sEmpty.insert(sEmpty.end(), 10, 20);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, insert_many_end_ten)
+{
+	mTen.insert(mTen.end(), 10, 20);
+	sTen.insert(sTen.end(), 10, 20);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, insert_many_end_one)
+{
+	mOne.insert(mOne.end(), 10, 20);
+	sOne.insert(sOne.end(), 10, 20);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, insert_many_end_two)
+{
+	mTwo.insert(mTwo.end(), 10, 20);
+	sTwo.insert(sTwo.end(), 10, 20);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, insert_range_end_empty)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mEmpty.insert(mEmpty.end(), randomArray.begin(), randomArray.begin() + range);
+	sEmpty.insert(sEmpty.end(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, insert_range_end_ten)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mTen.insert(mTen.end(), randomArray.begin(), randomArray.begin() + range);
+	sTen.insert(sTen.end(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, insert_range_end_one)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mOne.insert(mOne.end(), randomArray.begin(), randomArray.begin() + range);
+	sOne.insert(sOne.end(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, insert_range_end_two)
+{
+	int range = rand() % randomArray.size() + 1;
+
+	mTwo.insert(mTwo.end(), randomArray.begin(), randomArray.begin() + range);
+	sTwo.insert(sTwo.end(), randomArray.begin(), randomArray.begin() + range);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, erase_one_ten)
+{
+	ASSERT_EQ(mTen.erase(mTen.begin()), mTen.begin());
+	ASSERT_EQ(sTen.erase(sTen.begin()), sTen.begin());
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, erase_one_one)
+{
+	ASSERT_EQ(mOne.erase(mOne.begin()), mOne.begin());
+	ASSERT_EQ(sOne.erase(sOne.begin()), sOne.begin());
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, erase_one_two)
+{
+	ASSERT_EQ(mTwo.erase(mTwo.begin()), mTwo.begin());
+	ASSERT_EQ(sTwo.erase(sTwo.begin()), sTwo.begin());
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, erase_range_full_ten)
+{
+	mTen.erase(mTen.begin(), mTen.end());
+	sTen.erase(sTen.begin(), sTen.end());
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, erase_range_full_one)
+{
+	mOne.erase(mOne.begin(), mOne.end());
+	sOne.erase(sOne.begin(), sOne.end());
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, erase_range_full_two)
+{
+	mTwo.erase(mTwo.begin(), mTwo.end());
+	sTwo.erase(sTwo.begin(), sTwo.end());
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, erase_range_part_ten)
+{
+	mTen.erase(mTen.begin(), ++(mTen.begin()));
+	sTen.erase(sTen.begin(), ++(sTen.begin()));
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, swap_empty_ten)
+{
+	mEmpty.swap(mTen);
+	sEmpty.swap(sTen);
+	listComparison(mTen, sTen);
+	listComparison(mEmpty, sEmpty);
+
+}
+
+TEST_F(TestList, swap_ten_empty)
+{
+	mTen.swap(mEmpty);
+	sTen.swap(sEmpty);
+	listComparison(mEmpty, sEmpty);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, swap_one_two)
+{
+	mOne.swap(mTwo);
+	sOne.swap(sTwo);
+	listComparison(mTwo, sTwo);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, swap_two_one)
+{
+	mTwo.swap(mTen);
+	sTwo.swap(sTen);
+	listComparison(mTwo, sTwo);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, swap_two_ten)
+{
+	mTwo.swap(mTen);
+	sTwo.swap(sTen);
+	listComparison(mTwo, sTwo);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, resize_empty)
+{
+	mEmpty.resize(10, 2);
+	sEmpty.resize(10, 2);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, resize_one)
+{
+	mOne.resize(10, 2);
+	sOne.resize(10, 2);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, resize_two)
+{
+	mTwo.resize(10, 2);
+	sTwo.resize(10, 2);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, resize_ten)
+{
+	mTen.resize(10, 2);
+	sTen.resize(10, 2);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, splice_empty)
+{
+	mEmpty.splice(mEmpty.begin(), mTen);
+	sEmpty.splice(sEmpty.begin(), sTen);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, splice_one)
+{
+	mOne.splice(mOne.begin(), mTen);
+	sOne.splice(sOne.begin(), sTen);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, splice_two)
+{
+	mTwo.splice(mTwo.begin(), mTen);
+	sTwo.splice(sTwo.begin(), sTen);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, splice_ten)
+{
+	mTen.splice(mTen.begin(), mTwo);
+	sTen.splice(sTen.begin(), sTwo);
+	listComparison(mTen, sTen);
+}
+
+
