@@ -19,28 +19,31 @@
 
 namespace ft
 {
+	template <typename T>
+	struct									        s_list {
+		T											data;
+		struct s_list								*next;
+		struct s_list								*prev;
+	};
+
 	template<
 			typename T,
-			typename Allocator = std::allocator<T>
+			typename Allocator = std::allocator<struct s_list<T>>
 	>
 
 	class												List
 	{
 
-		typedef struct									s_list {
-			T											data;
-			struct list_t								*next;
-			struct list_t								*prev;
-		}												t_list;
 
 	public:
 		class const_iterator;
 		class iterator;
 
+		typedef struct s_list<T>                        t_list;
 		typedef T										value_type;
 		typedef Allocator								allocator_type;
-		typedef typename Allocator::reference			reference;
-		typedef typename Allocator::const_reference		const_reference;
+		typedef T&			                            reference;
+		typedef T const &		                        const_reference;
 		typedef typename Allocator::pointer				pointer;
 		typedef typename Allocator::const_pointer		const_pointer;
 		typedef std::reverse_iterator<iterator>			reverse_iterator;
@@ -54,8 +57,8 @@ namespace ft
 		size_type										_size;
 		allocator_type									_alloc;
 
-		t_list              *_allocate_node(value_type &val = 0) {
-			t_list          *node = static_cast<t_list*>(_alloc.allocate(1));
+		t_list              *_allocate_node(value_type val = 0) {
+			t_list          *node = _alloc.allocate(sizeof(t_list));
 			node->next = node;
 			node->prev = node;
 			node->data = val;
@@ -101,14 +104,14 @@ namespace ft
 		};
 		~List() {
 			clear();
+			_deallocateNode(_end);
 		};
 		List&						operator=(const List& rhs) {
 			iterator                begin = rhs.begin();
 			iterator                end = rhs.end();
 
 			if (this != &rhs) {
-				while (_size)
-					erase(begin());
+				clear();
 				this->_alloc = rhs._alloc;
 				while (begin != end)
 					push_back(*(begin++));
@@ -150,13 +153,14 @@ namespace ft
 			iterator(t_list *p): base_iterator(p) {};
 			iterator(iterator const &rhs): base_iterator(rhs) {}
 			~iterator(){};
-			t_list           *base() { return this->_p; }
-			reference        operator* () const { return *(this->_p->data); }
+			t_list           *base() const { return this->_p; }
+			reference        operator* () const { return this->_p->data; }
 			pointer          operator->() const { return pointer(this->_p->data); };
 			iterator&        operator++() { this->_p = this->_p->next;return *this; };
 			iterator         operator++(int) { iterator tmp(*this); operator++(); return tmp; }
 			iterator&        operator--() {this->_p = this->_p->prev;return *this; };
 			iterator         operator--(int) { iterator tmp(*this); operator--(); return tmp; }
+			iterator         operator==(iterator const&rhs) { return this->base() == rhs.base(); }
 			iterator         &operator=(iterator const &rhs) {
 				this->_p = rhs._p;
 				return *this;
@@ -169,13 +173,14 @@ namespace ft
 			const_iterator(): base_iterator() {};
 			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
 			~const_iterator(){};
-			t_list                  base() { return this->_p; }
-			reference               operator* () const { return *(this->_p->data); }
+			t_list                  *base() const { return this->_p; }
+			reference               operator* () const { return this->_p->data; }
 			pointer                 operator->() const { return pointer(this->_p->data); };
 			const_iterator&         operator++() { this->_p = this->_p->next;return *this; };
 			const_iterator          operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
 			const_iterator&         operator--() {this->_p = this->_p->prev;return *this; };
 			const_iterator          operator--(int) { const_iterator tmp(*this); operator--(); return tmp; }
+			bool                    operator==(const_iterator const&rhs) { return this->base() == rhs.base(); }
 			const_iterator          &operator=(const_iterator const &rhs) {
 				this->_p = rhs._p;
 				return *this;
@@ -214,13 +219,13 @@ namespace ft
 
 //		Capacity
 		bool 						empty() const {
-			return _size;
+			return _size == 0;
 		};
 		size_type					size() const {
 			return _size;
 		};
 		size_type					max_size() const {
-			return size_type(-1) / sizeof(value_type);
+			return size_type(-1) / sizeof(t_list);
 		};
 
 //		Element access
@@ -232,24 +237,24 @@ namespace ft
 			return _begin->data;
 		};
 		reference					back() {
-			return _end->data;
+			return _end->prev->data;
 		};
 		const_reference				back() const {
-			return _end->data;
+			return _end->prev->data;
 		};
 
 //		Modifiers
 
 		_INPUT_ITERATOR_TEMPLATE
 		void						assign(InputIterator first, InputIterator last) {
-			while (_size)
-				erase(begin());
-			while (first != last)
+			clear();
+			while (first != last) {
 				push_back(*first);
+				first++;
+			}
 		};
 		void						assign(size_type n, const value_type& val) {
-			while (_size)
-				erase(begin());
+			clear();
 			while (n-- > 0)
 				push_back(val);
 		};
@@ -271,6 +276,7 @@ namespace ft
 			_end->prev->next = res;
 			res->next = _end;
 			_end->prev = res;
+			_begin = _end->next;
 			++_size;
 		};
 		void						pop_back() {
@@ -336,13 +342,12 @@ namespace ft
 			t_list                  *positionBase = position.base();
 			t_list                  *tmp;
 
-			if (positionBase == _end)
-				return _end;
 			tmp = positionBase->next;
 			positionBase->prev->next = tmp;
 			tmp->prev = positionBase->prev;
-				_deallocateNode(positionBase);
+			_deallocateNode(positionBase);
 			--_size;
+			_begin = _end->next;
 			return tmp;
 		};
 		iterator					erase(iterator first, iterator last) {
@@ -355,8 +360,10 @@ namespace ft
 			tmp = lastBase->next;
 			firstBase->prev->next = tmp;
 			tmp->prev = firstBase->prev;
-			while (firstBase != lastBase)
+			while (firstBase != lastBase) {
 				_deallocateNode(firstBase++);
+				--_size;
+			}
 			return  tmp;
 		};
 		void						swap(List& rhs) {
@@ -405,7 +412,13 @@ namespace ft
 			rhs._end->next = rhs._end;
 			rhs._end->prev = rhs._end;
 		};
-		void						splice(iterator position, List& x, iterator i);
+
+		void						splice(iterator position, List& x, iterator i) {
+			iterator                positionBase;
+
+
+
+		};
 		void						splice(iterator position, List& x, iterator first, iterator last);
 		void						remove(const value_type& val);
 		template <class Predicate>

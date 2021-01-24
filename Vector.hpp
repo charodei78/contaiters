@@ -407,7 +407,7 @@ namespace ft
 		void						insert(iterator position, size_type n, const value_type& val) {
 			reverse_iterator        src;
 			reverse_iterator        dst;
-			bool                    is_empty;
+			bool                    is_empty = false;
 			size_type               num_position;
 
 			if (n == 0)
