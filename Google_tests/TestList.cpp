@@ -8,13 +8,14 @@
 #include <vector>
 #include <iterator>
 #include <limits>
+#include <cmath>
 #include <iostream>
 
 #include "../List.hpp"
 
-using mCon =    ft::List<int>;
-using sCon =    std::list<int>;
-using dataType = std::vector<int>;
+using mCon =    ft::List<double>;
+using sCon =    std::list<double>;
+using dataType = std::vector<double>;
 
 
 class TestList : public ::testing::Test {
@@ -23,6 +24,9 @@ public:
 	sCon		sTen;
 	sCon		sOne;
 	sCon		sTwo;
+	sCon        sNotUnique;
+	sCon        sUnsort1;
+	sCon        sUnsort2;
 
 	dataType    randomArray;
 
@@ -30,6 +34,9 @@ public:
 	mCon		mTen;
 	mCon		mOne;
 	mCon		mTwo;
+	mCon        mNotUnique;
+	mCon        mUnsort1;
+	mCon        mUnsort2;
 
 protected:
 	void SetUp()
@@ -56,7 +63,39 @@ protected:
 		for (int i = 0; i < 100; ++i) {
 			randomArray.push_back(rand());
 		}
+		double mydoubles[]={ 12.15,  2.72, 73.0,  12.77,  3.14,
+		                     12.77, 73.35, 72.25, 15.3,  72.25 };
+		sNotUnique.assign(mydoubles, mydoubles + 10);
+		mNotUnique.assign(mydoubles, mydoubles + 10);
+
+		double unsort1[] = { 3.1, 2.2, 2.9, 1.4, 2.3, 2.5, 0 };
+		double unsort2[] = { 3.7, 7.1, 1.4 };
+
+		sUnsort1.assign(unsort1, unsort1 + 3);
+		sUnsort2.assign(unsort2, unsort2 + 3);
+		mUnsort1.assign(unsort1, unsort1 + 3);
+		mUnsort2.assign(unsort2, unsort2 + 3);
+
 	}
+
+
+	// a predicate implemented as a function:
+	static bool single_digit (const int& value) { return (value<10); }
+
+	// a predicate implemented as a class:
+	struct is_odd {
+		bool operator() (const int& value) { return (value%2)==1; }
+	};
+
+	// a binary predicate implemented as a function:
+	static bool same_integral_part (double first, double second)
+	{ return ( int(first)==int(second) ); }
+
+	// a binary predicate implemented as a class:
+	struct is_near {
+		bool operator() (double first, double second)
+		{ return (fabs(first-second)<5.0); }
+	};
 
 	static void         listComparison(const mCon & mC, const sCon & sC)
 	{
@@ -117,6 +156,15 @@ protected:
 		ASSERT_EQ(sBegin == sEnd, mBegin == mEnd);
 	}
 };
+
+TEST_F(TestList, default_constructor)
+{
+	mCon            mList(10);
+	sCon            sList(10);
+
+	listComparison(mList, sList);
+}
+
 
 TEST_F(TestList, equal_empty)
 {
@@ -746,4 +794,268 @@ TEST_F(TestList, splice_ten)
 	listComparison(mTen, sTen);
 }
 
+TEST_F(TestList, splice_i_empty)
+{
+	mEmpty.splice(mEmpty.begin(), mTen, ++(mTen.begin()));
+	sEmpty.splice(sEmpty.begin(), sTen, ++(sTen.begin()));
+	listComparison(mEmpty, sEmpty);
+}
 
+TEST_F(TestList, splice_i_one)
+{
+	mOne.splice(mOne.begin(), mTen, ++(mTen.begin()));
+	sOne.splice(sOne.begin(), sTen, ++(sTen.begin()));
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, splice_i_two)
+{
+	mTwo.splice(mTwo.begin(), mTen, ++(mTen.begin()));
+	sTwo.splice(sTwo.begin(), sTen, ++(sTen.begin()));
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, splice_i_ten)
+{
+	mTen.splice(mTen.begin(), mTwo, ++(mTwo.begin()));
+	sTen.splice(sTen.begin(), sTwo, ++(sTwo.begin()));
+	listComparison(mTen, sTen);
+}
+
+
+TEST_F(TestList, splice_range_empty)
+{
+	mEmpty.splice(mEmpty.begin(), mTen, ++(mTen.begin()), --(mTen.end()));
+	sEmpty.splice(sEmpty.begin(), sTen, ++(sTen.begin()), --(sTen.end()));
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, splice_range_one)
+{
+	mOne.splice(mOne.begin(), mTen, ++(mTen.begin()), --(mTen.end()));
+	sOne.splice(sOne.begin(), sTen, ++(sTen.begin()), --(sTen.end()));
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, splice_range_two)
+{
+	mTwo.splice(mTwo.begin(), mTen, ++(mTen.begin()), --(mTen.end()));
+	sTwo.splice(sTwo.begin(), sTen, ++(sTen.begin()), --(sTen.end()));
+	listComparison(mTwo, sTwo);
+}
+
+
+// undefined
+TEST_F(TestList, splice_range_ten)
+{
+	mTen.splice(mTen.begin(), mTwo, ++(mTwo.begin()), --(mTwo.end()));
+	sTen.splice(sTen.begin(), sTwo, ++(sTwo.begin()), --(sTwo.end()));
+	listComparison(mTen, sTen);
+}
+
+
+TEST_F(TestList, splice_range_middle_ten)
+{
+	mTen.splice(++(mTen.begin()), mTwo, mTwo.begin(), mTwo.end());
+	sTen.splice(++(sTen.begin()), sTwo, sTwo.begin(), sTwo.end());
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, remove_empty)
+{
+	mEmpty.remove(1);
+	sEmpty.remove(1);
+	listComparison(mEmpty, sEmpty);
+}
+
+TEST_F(TestList, remove_one)
+{
+	mOne.remove(1);
+	sOne.remove(1);
+	listComparison(mOne, sOne);
+}
+
+TEST_F(TestList, remove_10_one)
+{
+	mOne.remove(10);
+	sOne.remove(10);
+	listComparison(mOne, sOne);
+}
+
+
+TEST_F(TestList, remove_1_two)
+{
+	mTwo.remove(1);
+	sTwo.remove(1);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, remove_25_two)
+{
+	mTwo.remove(25);
+	sTwo.remove(25);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, remove_12_two)
+{
+	mTwo.remove(25);
+	sTwo.remove(25);
+	listComparison(mTwo, sTwo);
+}
+
+TEST_F(TestList, remove_10_ten)
+{
+	mTen.remove(10);
+	sTen.remove(10);
+	listComparison(mTen, sTen);
+}
+
+
+TEST_F(TestList, remove_if_single_digit_ten)
+{
+	mTen.remove_if(single_digit);
+	sTen.remove_if(single_digit);
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, remove_if_is_odd_ten)
+{
+	mTen.remove_if(is_odd());
+	sTen.remove_if(is_odd());
+	listComparison(mTen, sTen);
+}
+
+
+TEST_F(TestList, unique)
+{
+	mNotUnique.unique();
+	sNotUnique.unique();
+
+	listComparison(mNotUnique, sNotUnique);
+}
+
+TEST_F(TestList, sort_unique)
+{
+	mNotUnique.sort();
+	mNotUnique.unique();
+	sNotUnique.sort();
+	sNotUnique.unique();
+
+	listComparison(mNotUnique, sNotUnique);
+}
+
+TEST_F(TestList, unique_same_integral_part)
+{
+	mNotUnique.unique(same_integral_part);
+	sNotUnique.unique(same_integral_part);
+	listComparison(mNotUnique, sNotUnique);
+}
+
+TEST_F(TestList, sort_unique_same_integral_part)
+{
+	mNotUnique.sort();
+	mNotUnique.unique(same_integral_part);
+	sNotUnique.sort();
+	sNotUnique.unique(same_integral_part);
+	listComparison(mNotUnique, sNotUnique);
+}
+
+TEST_F(TestList, sort_unique_is_near)
+{
+	mNotUnique.sort();
+	mNotUnique.unique(is_near());
+	sNotUnique.sort();
+	sNotUnique.unique(is_near());
+	listComparison(mNotUnique, sNotUnique);
+}
+
+TEST_F(TestList, merge)
+{
+	mUnsort1.merge(mUnsort2);
+	sUnsort1.merge(sUnsort2);
+	listComparison(mUnsort1, sUnsort1);
+}
+
+TEST_F(TestList, sort_merge)
+{
+	mUnsort2.sort();
+	mUnsort1.merge(mUnsort2);
+	sUnsort2.sort();
+	sUnsort1.merge(sUnsort2);
+	listComparison(mUnsort1, sUnsort1);
+}
+
+TEST_F(TestList, sort)
+{
+	mUnsort1.sort();
+	sUnsort1.sort();
+	listComparison(mUnsort1, sUnsort1);
+}
+
+TEST_F(TestList, reverse)
+{
+	mTen.reverse();
+	sTen.reverse();
+	listComparison(mTen, sTen);
+}
+
+TEST_F(TestList, operator_equal) {
+	mCon mTest = mTen;
+	sCon sTest = sTen;
+
+	ASSERT_EQ(mTen == mTen, sTen == sTen);
+	ASSERT_EQ(mEmpty == mEmpty, sEmpty == sEmpty);
+	ASSERT_EQ(mOne == mTwo, sOne == sTwo);
+	ASSERT_EQ(mEmpty == mTwo, sEmpty == sTwo);
+	ASSERT_EQ(mOne == mTwo, sOne == sTwo);
+	ASSERT_EQ(mTest == mTen, sTest == sTen);
+}
+
+TEST_F(TestList, operator_lower) {
+	mCon mTest = mTen;
+	sCon sTest = sTen;
+
+	ASSERT_EQ(mTen < mTen, sTen < sTen);
+	ASSERT_EQ(mEmpty < mEmpty, sEmpty < sEmpty);
+	ASSERT_EQ(mOne < mTwo, sOne < sTwo);
+	ASSERT_EQ(mEmpty < mTwo, sEmpty < sTwo);
+	ASSERT_EQ(mOne < mTwo, sOne < sTwo);
+	ASSERT_EQ(mTest < mTen, sTest < sTen);
+}
+
+TEST_F(TestList, operator_or_equal_lower) {
+	mCon mTest = mTen;
+	sCon sTest = sTen;
+
+	ASSERT_EQ(mTen <= mTen, sTen <= sTen);
+	ASSERT_EQ(mEmpty <= mEmpty, sEmpty <= sEmpty);
+	ASSERT_EQ(mOne <= mTwo, sOne <= sTwo);
+	ASSERT_EQ(mEmpty <= mTwo, sEmpty <= sTwo);
+	ASSERT_EQ(mOne <= mTwo, sOne <= sTwo);
+	ASSERT_EQ(mTest <= mTen, sTest <= sTen);
+}
+
+
+TEST_F(TestList, swap_non_member) {
+	mCon mTest = mTen;
+	sCon sTest = sTen;
+
+	swap(mTen , mTen), swap(sTen , sTen);
+	listComparison(mTen,sTen);
+	swap(mEmpty , mEmpty), swap(sEmpty , sEmpty);
+	listComparison(mEmpty,sEmpty);
+	swap(mOne , mTwo), swap(sOne , sTwo);
+	listComparison(mOne,sOne);
+	listComparison(mTwo,sTwo);
+	swap(mEmpty , mTwo), swap(sEmpty , sTwo);
+	listComparison(mEmpty,sEmpty);
+	listComparison(mTwo,sTwo);
+	swap(mOne , mTwo), swap(sOne , sTwo);
+	listComparison(mOne,sOne);
+	listComparison(mTwo,sTwo);
+	swap(mTest , mTen), swap(sTest , sTen);
+	listComparison(mTest,sTest);
+	listComparison(mTen,sTen);
+
+}
