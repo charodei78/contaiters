@@ -2,11 +2,14 @@
 // Created by Holli Heimerdinger on 11/30/20.
 //
 
+//#include "Google_tests/googletest/googletest/include/gtest/gtest.h"
+
 #include <stack>
 #include <list>
 #include <vector>
 #include <iostream>
 #include "Vector.hpp"
+#include "Stack.hpp"
 
 typedef struct									s_list {
 	s_list(): data(0), next(nullptr), prev(nullptr){};
@@ -23,6 +26,8 @@ public:
 int 		main()
 {
 
+	std::stack<int, std::list<int>> sCon;
+	ft::Stack<int, std::list<int>> mCon;
 
 
 //	std::vector<int>		v1(100, 15);
@@ -42,26 +47,26 @@ int 		main()
 //	std::cout << test->next << std::endl;
 //	std::cout << test->prev << std::endl;
 //std::vector<A*> test;
-std::list<int> list(0);
-
-size_t a = 100;
-size_t b = 1000;
-
-std::cout << (int)a - (int)b;
-
-	std::list<int>::iterator begin = list.begin();
-	std::list<int>::iterator end = list.end();
-	list.insert(end, 2);
-	begin = list.begin();
-	end = list.end();
-	list.push_back(4);
-	begin = list.begin();
-	end = list.end();
-	list.push_back(4);
-	begin = list.begin();
-	end = list.end();
-	list.push_back(4);
-	list.push_back(4);
+//std::list<int> list(0);
+//
+//size_t a = 100;
+//size_t b = 1000;
+//
+//std::cout << (int)a - (int)b;
+//
+//	std::list<int>::iterator begin = list.begin();
+//	std::list<int>::iterator end = list.end();
+//	list.insert(end, 2);
+//	begin = list.begin();
+//	end = list.end();
+//	list.push_back(4);
+//	begin = list.begin();
+//	end = list.end();
+//	list.push_back(4);
+//	begin = list.begin();
+//	end = list.end();
+//	list.push_back(4);
+//	list.push_back(4);
 	list.push_back(4);
 
 //	test.push_back(new A);
