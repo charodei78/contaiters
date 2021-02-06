@@ -11,11 +11,9 @@
 #include <type_traits>
 #include <stdexcept>
 
-#define _INPUT_ITERATOR_TEMPLATE \
-	template < \
-		class InputIterator,\
-		typename = typename std::enable_if< std::__is_input_iterator<InputIterator>::value>::type \
-	>
+# ifndef _ENABLE_INPUT_ITERATOR
+#  define _ENABLE_INPUT_ITERATOR typename std::enable_if< std::__is_input_iterator<InputIterator>::value, InputIterator>::type
+# endif
 
 namespace ft
 {
@@ -102,8 +100,8 @@ namespace ft
 			resize(n, val);
 		};
 
-		_INPUT_ITERATOR_TEMPLATE
-		List (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
+		template < class InputIterator >
+		List (InputIterator first, _ENABLE_INPUT_ITERATOR last, const allocator_type& alloc = allocator_type())
 				: _alloc(alloc), _begin(_allocate_node()), _end(_begin), _size(0) {
 			size_type 	distance;
 
@@ -262,8 +260,8 @@ namespace ft
 
 //		Modifiers
 
-		_INPUT_ITERATOR_TEMPLATE
-		void						assign(InputIterator first, InputIterator last) {
+		template < class InputIterator >
+		void						assign(InputIterator first, _ENABLE_INPUT_ITERATOR last) {
 			clear();
 			while (first != last) {
 				push_back(*first);
@@ -332,8 +330,8 @@ namespace ft
 				_begin = _end->next;
 			}
 		};
-		_INPUT_ITERATOR_TEMPLATE
-		void						insert(iterator position, InputIterator first, InputIterator last) {
+		template < class InputIterator >
+		void						insert(iterator position, InputIterator first, _ENABLE_INPUT_ITERATOR last) {
 			t_list                  *positionBase = position.base();
 			t_list                  *begin;
 			t_list                  *end;

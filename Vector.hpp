@@ -5,15 +5,16 @@
 #ifndef FT_CONTAINERS_VECTOR_HPP
 #define FT_CONTAINERS_VECTOR_HPP
 
-#include <memory>
-#include <type_traits>
-#include <stdexcept>
 
-#define _INPUT_ITERATOR_TEMPLATE \
-	template < \
-		class InputIterator,\
-		typename = typename std::enable_if< std::__is_input_iterator<InputIterator>::value>::type \
-	>
+# include <memory>
+# include <cstddef>
+# include <stdlib.h>
+# include <type_traits>
+# include <stdexcept>
+
+# ifndef _ENABLE_INPUT_ITERATOR
+#  define _ENABLE_INPUT_ITERATOR typename std::enable_if< std::__is_input_iterator<InputIterator>::value, InputIterator>::type
+# endif
 
 namespace ft
 {
@@ -175,7 +176,7 @@ namespace ft
 		};
 
 	private:
-		value_type										*_memory = nullptr;
+		value_type										*_memory;
 		size_type										_size;
 		size_type										_capacity;
 		allocator_type									_alloc;
@@ -189,8 +190,8 @@ namespace ft
 			resize(n, val);
 		};
 
-		_INPUT_ITERATOR_TEMPLATE
-		Vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
+		template < class InputIterator >
+		Vector (InputIterator first,	_ENABLE_INPUT_ITERATOR last, const allocator_type& alloc = allocator_type())
 				: _memory(nullptr), _size(0), _capacity(0), _alloc(alloc) {
 			iterator 	it;
 			size_type 	distance;
@@ -359,8 +360,8 @@ namespace ft
 
 //		Modifiers
 
-		_INPUT_ITERATOR_TEMPLATE
-		void						assign(InputIterator first, InputIterator last) {
+		template < class InputIterator >
+		void						assign(_ENABLE_INPUT_ITERATOR first, InputIterator last) {
 			size_type				distance = std::distance(first, last);
 			iterator 				it;
 
@@ -431,8 +432,9 @@ namespace ft
 			}
 		};
 
-		_INPUT_ITERATOR_TEMPLATE
-		void						insert(iterator position, InputIterator first, InputIterator last) {
+		template < class InputIterator >
+		void						insert(iterator position, _ENABLE_INPUT_ITERATOR first, InputIterator last)
+		{
 			reverse_iterator        src;
 			reverse_iterator        dst;
 			size_type 				distance;

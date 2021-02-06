@@ -1,16 +1,16 @@
 //
-// Created by 32-ko on 01.02.2021.
+// Created by Holli Heimerdinger on 2/6/21.
 //
 
-#ifndef FT_CONTAINERS_STACK_HPP
-#define FT_CONTAINERS_STACK_HPP
+#ifndef FT_CONTAINERS_QUEUE_HPP
+#define FT_CONTAINERS_QUEUE_HPP
 
 #import <deque>
 
 namespace ft
 {
 	template<class T, class Container = std::deque <T> >
-	class Stack
+	class Queue
 	{
 
 		typedef size_t          size_type;
@@ -20,14 +20,14 @@ namespace ft
 
 		container_type          _memory;
 
-		explicit    Stack(Stack const &rhs) {};
-		Stack       &operator=(Stack const &rhs) {};
+		explicit    Queue(Queue const &rhs) {};
+		Queue       &operator=(Queue const &rhs) {};
 
 	public:
-		explicit Stack(const container_type &ctnr = container_type())
-			:_memory(ctnr){};
+		explicit Queue(const container_type &ctnr = container_type())
+				:_memory(ctnr){};
 
-		virtual ~Stack() {};
+		virtual ~Queue() = default;
 
 		bool    empty() const
 		{
@@ -39,9 +39,14 @@ namespace ft
 			return _memory.size();
 		}
 
-		value_type& top()
+		value_type& back()
 		{
 			return _memory.back();
+		};
+
+		value_type& front()
+		{
+			return _memory.front();
 		};
 
 		const value_type& top() const {
@@ -53,7 +58,7 @@ namespace ft
 		};
 
 		void pop() {
-			_memory.pop_back();
+			_memory.pop_front();
 		}
 
 		const _Container& _Get_container() const
@@ -64,35 +69,35 @@ namespace ft
 	};
 
 	template <class T, class Container>
-	bool operator== (const Stack<T,Container>& lhs, const Stack<T,Container>& rhs) {
+	bool operator== (const Queue<T,Container>& lhs, const Queue<T,Container>& rhs) {
 		return lhs._Get_container() == rhs._Get_container();
 	};
 
 	template <class T, class Container>
-	bool operator!= (const Stack<T,Container>& lhs, const Stack<T,Container>& rhs) {
+	bool operator!= (const Queue<T,Container>& lhs, const Queue<T,Container>& rhs) {
 		return lhs._Get_container() != rhs._Get_container();
 	};
 
 	template <class T, class Container>
-	bool operator<  (const Stack<T,Container>& lhs, const Stack<T,Container>& rhs) {
+	bool operator<  (const Queue<T,Container>& lhs, const Queue<T,Container>& rhs) {
 		return lhs._Get_container() < rhs._Get_container();
 	};
 
 	template <class T, class Container>
-	bool operator<= (const Stack<T,Container>& lhs, const Stack<T,Container>& rhs) {
+	bool operator<= (const Queue<T,Container>& lhs, const Queue<T,Container>& rhs) {
 		return lhs._Get_container() <= rhs._Get_container();
 	};
 
 	template <class T, class Container>
-	bool operator>  (const Stack<T,Container>& lhs, const Stack<T,Container>& rhs) {
+	bool operator>  (const Queue<T,Container>& lhs, const Queue<T,Container>& rhs) {
 		return lhs._Get_container() > rhs._Get_container();
 	};
 
 	template <class T, class Container>
-	bool operator>= (const Stack<T,Container>& lhs, const Stack<T,Container>& rhs) {
+	bool operator>= (const Queue<T,Container>& lhs, const Queue<T,Container>& rhs) {
 		return lhs._Get_container() >= rhs._Get_container();
 	};
 
 };
 
-#endif //FT_CONTAINERS_STACK_HPP
+#endif //FT_CONTAINERS_QUEUE_HPP

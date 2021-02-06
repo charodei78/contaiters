@@ -7,16 +7,20 @@
 #include <stack>
 #include <list>
 #include <vector>
+#include <map>
 #include <iostream>
 #include "Vector.hpp"
 #include "Stack.hpp"
 
-typedef struct									s_list {
-	s_list(): data(0), next(nullptr), prev(nullptr){};
-	int											data;
-	struct list_t								*next;
-	struct list_t								*prev;
-} t_list;
+template <typename Key, typename T>
+struct  pair {
+	T       data;
+	Key     key;
+	pair    *left;
+	pair    *prev;
+	bool	is_red;
+	pair    *right;
+};
 
 class A {
 public:
@@ -26,8 +30,15 @@ public:
 int 		main()
 {
 
-	std::stack<int, std::list<int>> sCon;
-	ft::Stack<int, std::list<int>> mCon;
+//	std::stack<int, std::list<int>> sCon;
+//	ft::Stack<int, std::list<int>> mCon;\
+
+std::map<int, std::string> map_test;
+
+
+	std::cout << sizeof(pair<int, std::string>) << std::endl;
+	std::cout << sizeof(std::map<int, std::string>::pointer) << std::endl;
+
 
 
 //	std::vector<int>		v1(100, 15);
@@ -67,7 +78,7 @@ int 		main()
 //	end = list.end();
 //	list.push_back(4);
 //	list.push_back(4);
-	list.push_back(4);
+//	list.push_back(4);
 
 //	test.push_back(new A);
 //	test.push_back(new A);
