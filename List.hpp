@@ -26,7 +26,7 @@ namespace ft
 
 	template<
 			typename T,
-			typename Allocator = std::allocator<struct s_list<T>>
+			typename Allocator = std::allocator<T>
 	>
 
 	class												List
@@ -50,13 +50,16 @@ namespace ft
 		typedef std::size_t								size_type;
 
 	private:
+		typedef typename Allocator::template 			rebind<t_list>::other _node_alloc;
+		typedef typename _node_alloc::pointer			_node_pointer;
+		typedef typename _node_alloc::const_pointer		_node_const_pointer;
 		t_list  										*_begin = nullptr;
 		t_list  										*_end = nullptr;
 		size_type										_size;
 		allocator_type									_alloc;
 
 		t_list              *_allocate_node(value_type val = 0) {
-			t_list          *node = _alloc.allocate(sizeof(t_list));
+			t_list          *node = _node_alloc(_alloc).allocate(1);
 			node->next = node;
 			node->prev = node;
 			node->data = val;
@@ -64,7 +67,7 @@ namespace ft
 		};
 
 		void                _deallocateNode(t_list *node) {
-			_alloc.deallocate(node, 1);
+			_node_alloc(_alloc).deallocate(node, 1);
 		};
 
 		template<typename Y>
@@ -144,7 +147,7 @@ namespace ft
 				this->_p = rhs._p;
 			}
 
-			base_iterator(pointer p) {
+			base_iterator(_node_pointer p) {
 				this->_p = p;
 			}
 
@@ -183,7 +186,7 @@ namespace ft
 
 		class const_iterator: public base_iterator {
 		public:
-			const_iterator(pointer p): base_iterator(p) {};
+			const_iterator(_node_pointer p): base_iterator(p) {};
 			const_iterator(): base_iterator() {};
 			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
 			~const_iterator(){};
