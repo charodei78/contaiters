@@ -34,12 +34,15 @@ int 		main()
 //	std::stack<int, std::list<int>> sCon;
 //	ft::Stack<int, std::list<int>> mCon;\
 
-std::map<int, std::string> map_test;
-std::list<int>::allocator_type test;
-	std::cout << sizeof(pair<int, std::string>) << std::endl;
-	std::cout << sizeof(std::map<int, std::string>::pointer) << std::endl;
-	std::cout << sizeof(ft::Map<int, std::string>::value_type) << std::endl;
+	std::map<int, std::string> map_test;
+	ft::Map<int, std::string> Map_test;
+//std::list<int>::allocator_type test;
+//	std::cout << sizeof(pair<int, std::string>) << std::endl;
+//	std::cout << sizeof(std::map<int, std::string>::pointer) << std::endl;
+//	std::cout << sizeof(ft::Map<int, std::string>::value_type) << std::endl;
 
+	std::cout << Map_test.max_size() << std::endl;
+	std::cout << map_test.max_size() << std::endl;
 
 
 //	std::vector<int>		v1(100, 15);

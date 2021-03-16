@@ -13,7 +13,7 @@
 #  define _ENABLE_INPUT_ITERATOR typename std::enable_if< std::__is_input_iterator<InputIterator>::value, InputIterator>::type
 # endif
 
-template<typename T, typename Key, typename Allocator>
+template<typename T, typename Key>
 struct node
 {
 	node 				*left;
@@ -21,10 +21,6 @@ struct node
 	node 				*parent;
 	std::pair<Key, T> 	pair;
 	bool 				is_red;
-
-	node(Allocator allocator = new Allocator ,node *parent = nullptr): pair(static_cast<std::pair<Key, T> >(allocator.allocate(1))), is_red(true), left(nullptr), right(nullptr), parent(parent) {
-
-	}
 
 	bool isLeft()
 	{
@@ -299,13 +295,20 @@ namespace ft {
 		typedef size_t                                              size_type;
 
 	private:
-		typedef node<Key, T, Alloc>		base;
+		typedef node<T, Key>										node_base;
+		typedef typename allocator_type::template rebind<node_base>::other 	_node_alloc;
+		typedef typename allocator_type::pointer                    node_pointer;
+		typedef typename allocator_type::const_pointer              node_const_pointer;
+		typedef typename allocator_type::reference                  node_reference;
+		typedef typename allocator_type::const_reference            node_const_reference;
 
 		allocator_type 					_alloc;
 		size_type 						_size;
-		base	 						*_begin;
-		base	 						*_end;
-		base	 						*_root;
+		node_pointer  					_begin;
+		key_type 						max_key;
+		node_pointer  					_end;
+		key_type 						min_key;
+		node_pointer  					_root;
 		key_compare						_cmp;
 
 		// TODO: проверить коплина
@@ -315,7 +318,7 @@ namespace ft {
 		protected:
 			value_type *_p;
 
-			pointer getMore(base node) {
+			pointer getMore(node_pointer node) {
 				if (node->right) {
 					node = node->right;
 					while (node->left)
@@ -328,7 +331,7 @@ namespace ft {
 				}
 			};
 
-			pointer getLess(base node) {
+			pointer getLess(node_pointer node) {
 				if (node->left) {
 					node = node->left;
 					while (node->right)
@@ -361,18 +364,24 @@ namespace ft {
 			};
 		};
 
-		value_type			allocate_node(Key key, T value = T(), pointer parent = nullptr) {
+		node_pointer			allocate_node(Key key, T value = T(), pointer parent = nullptr) {
 			pointer			node;
 
-			node = _alloc.allocate(1);
+			node = _node_alloc(_alloc).allocate(1);
 
 			node->key = key;
 			node->data = value;
 			node->left = nullptr;
-			node->right = parent;
+			node->right = nullptr;
+			node->is_red = true;
+			node->parent = parent;
 
 			return node;
 		}
+
+		void                _deallocateNode(node_pointer node) {
+			_node_alloc(_alloc).deallocate(node, 1);
+		};
 
 	public:
 
@@ -427,17 +436,19 @@ namespace ft {
 
 		explicit Map (const key_compare& comp = key_compare(),
 		              const allocator_type& alloc = allocator_type())
-		              : _root(nullptr), _alloc(alloc), _cmp(comp) {};
+		              : _root(nullptr), _alloc(alloc), _cmp(comp), _size(0), _begin(nullptr), _end(nullptr), max_key(key_type()), min_key(max_key)
+		              {};
 
 		template < class InputIterator >
 		Map (InputIterator first, _ENABLE_INPUT_ITERATOR last,
 				const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
-				: _root(nullptr), _alloc(alloc), _cmp(comp)
+				: _root(nullptr), _alloc(alloc), _cmp(comp), _size(0), _begin(nullptr), _end(nullptr), max_key(key_type()), min_key(max_key)
 			{ insert(first, last); };
 
 
-		Map (const Map& rhs) {
+		Map (const Map& rhs) : _root(nullptr), _alloc(rhs._alloc), _cmp(rhs.comp), _size(0), _begin(nullptr), _end(nullptr), max_key(key_type()), min_key(max_key)
+		{
 			insert(rhs.begin(), rhs.end());
 		};
 
@@ -486,7 +497,7 @@ namespace ft {
 			return _size;
 		};
 		size_type					max_size() const {
-			return size_type(-1) / sizeof(value_type);
+			return size_type(-1) / sizeof(node_base);
 		};
 
 //		Element access

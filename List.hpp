@@ -50,13 +50,13 @@ namespace ft
 		typedef std::size_t								size_type;
 
 	private:
-		typedef typename Allocator::template 			rebind<t_list>::other _node_alloc;
-		typedef typename _node_alloc::pointer			_node_pointer;
-		typedef typename _node_alloc::const_pointer		_node_const_pointer;
-		t_list  										*_begin = nullptr;
-		t_list  										*_end = nullptr;
-		size_type										_size;
-		allocator_type									_alloc;
+		typedef typename Allocator::template rebind<t_list>::other 	_node_alloc;
+		typedef typename _node_alloc::pointer						_node_pointer;
+		typedef typename _node_alloc::const_pointer					_node_const_pointer;
+		t_list  													*_begin = nullptr;
+		t_list  													*_end = nullptr;
+		size_type													_size;
+		allocator_type												_alloc;
 
 		t_list              *_allocate_node(value_type val = 0) {
 			t_list          *node = _node_alloc(_alloc).allocate(1);
