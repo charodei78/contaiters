@@ -111,26 +111,34 @@ namespace ft {
 			node_pointer _p;
 
 			node_pointer getMore(node_pointer node) {
+				if (!node)
+					return node;
 				if (node->right) {
 					node = node->right;
 					while (node->left)
 						node = node->left;
 					return node;
+				} else if (node->isLeft()) {
+					return node->parent;
 				} else {
-					while (node->isRight())
+					while (node->parent && node->isRight())
 						node = node->parent;
 					return node->parent;
 				}
 			};
 
 			node_pointer getLess(node_pointer node) {
+				if (!node)
+					return node;
 				if (node->left) {
 					node = node->left;
 					while (node->right)
 						node = node->right;
 					return node;
+				} else if (node->isRight()){
+					return node->parent;
 				} else {
-					while (node->isLeft())
+					while (node->parent && node->isLeft())
 						node = node->parent;
 					return node->parent;
 				}
@@ -185,8 +193,8 @@ namespace ft {
 			iterator(iterator const &rhs): base_iterator(rhs) {}
 			~iterator(){};
 			node_pointer     base() const { return this->_p; }
-			value_type 		 operator* () const { return value_type(this->_p->value, this->_p->value); }
-			pointer 		 operator->() const { return pointer(this->_p->value, this->_p->value); };
+			value_type 		 operator* () const { return value_type(this->_p->key, this->_p->value); }
+			pointer 		 operator->() const { return pointer(value_type(this->_p->key, this->_p->value)); };
 			iterator&        operator++() { this->_p = this->getMore(this->_p); return *this; };
 			iterator         operator++(int) { iterator tmp(*this); operator++(); return tmp; }
 			iterator&        operator--() { this->_p = this->getLess(this->_p); return *this; };
@@ -206,8 +214,8 @@ namespace ft {
 			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
 			~const_iterator(){};
 			value_type              *base() const { return this->_p; }
-			value_type 		 		operator* () const { return value_type(this->_p->value, this->_p->value); }
-			pointer 		 		operator->() const { return pointer(this->_p->value, this->_p->value); };
+			value_type 		 		operator* () const { return value_type(this->_p->key, this->_p->value); }
+			pointer 		 		operator->() const { return pointer(value_type(this->_p->key, this->_p->value)); };
 			const_iterator&         operator++() { this->_p = this->getMore(this->_p); return *this; };
 			const_iterator          operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
 			const_iterator&         operator--() { this->_p = this->getLess(this->_p); return *this; };
@@ -224,23 +232,25 @@ namespace ft {
 			};
 		};
 
-
-
-
 		explicit Map (const key_compare& comp = key_compare(),
 		              const allocator_type& alloc = allocator_type())
-		              : _root(nullptr), _alloc(alloc), _cmp(comp), _size(0), _begin(nullptr), _end(nullptr), max_key(key_type()), min_key(max_key)
-		              {};
+		              : _begin(allocate_node(Key(), T())), _end(allocate_node(Key(), T())), _root(_end), _alloc(alloc), _cmp(comp), _size(0), max_key(key_type()), min_key(max_key)
+		              {
+						_begin->parent = _end;
+						_end->left = _begin;
+						_end->is_red = false;
+						_size = 0;
+		              };
 
 		template < class InputIterator >
 		Map (InputIterator first, _ENABLE_INPUT_ITERATOR last,
 				const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
-				: _root(nullptr), _alloc(alloc), _cmp(comp), _size(0), _begin(nullptr), _end(nullptr), max_key(key_type()), min_key(max_key)
+				: _begin(allocate_node(Key(), T())), _end(allocate_node(Key(), T())), _root(_end), _alloc(alloc), _cmp(comp), _size(0), max_key(key_type()), min_key(max_key)
 			{ insert(first, last); };
 
 
-		Map (const Map& rhs) : _root(nullptr), _alloc(rhs._alloc), _cmp(rhs.comp), _size(0), _begin(nullptr), _end(nullptr), max_key(key_type()), min_key(max_key)
+		Map (const Map& rhs) : _begin(allocate_node(Key(), T())), _end(allocate_node(Key(), T())), _root(_end), _alloc(allocator_type()), _cmp(key_compare()), _size(0), max_key(key_type()), min_key(max_key)
 		{
 			insert(rhs.begin(), rhs.end());
 		};
@@ -254,14 +264,17 @@ namespace ft {
 			insert(rhs.begin(), rhs.end());
 		}
 
-
 //		Iterators
 
 		iterator					begin() {
-			return iterator(_begin);
+			if (_begin->right)
+				return iterator(_begin->right);
+			return iterator(_begin->parent);
 		};
 		const_iterator 				begin() const {
-			return const_iterator(_begin);
+			if (_begin->right)
+				return const_iterator(_begin->right);
+			return const_iterator(_begin->parent);
 		};
 		iterator					end() {
 			return iterator(_end);
@@ -276,10 +289,14 @@ namespace ft {
 			return const_reverse_iterator(_end);
 		};
 		reverse_iterator			rend() {
-			return reverse_iterator(_begin);
+			if (_begin->right)
+				return reverse_iterator(_begin->right);
+			return reverse_iterator(_begin->parent);
 		};
 		const_reverse_iterator		rend() const {
-			return const_reverse_iterator(_begin);
+			if (_begin->right)
+				return const_reverse_iterator(_begin->right);
+			return const_reverse_iterator(_begin->parent);
 		};
 
 //		Capacity
@@ -304,6 +321,7 @@ namespace ft {
 
 		};
 
+	private:
 		void rotateLeft(node_pointer n)
 		{
 			node_pointer pivot = n->right;
@@ -388,12 +406,13 @@ namespace ft {
 		{
 			if (n->isRight() && n->parent->isLeft()) {
 				rotateLeft(n->parent);
-				insertCase5(n->left);
+				n = n->left;
 			}
 			if (n->isLeft() && n->parent->isRight()) {
 				rotateRight(n->parent);
-				insertCase5(n->right);
+				n = n->right;
 			}
+			insertCase5(n);
 		}
 
 		// parent is red, uncle is black, node is right, parent is right (or vice versa)
@@ -526,35 +545,35 @@ namespace ft {
 
 			if (!node)
 				node = _root;
-			if (!node) {
-				node = allocate_node(key, val.second, nullptr);
-				_root = _begin = _end = node;
-				max_key = min_key = key;
-				insertCase1(node);
-				return std::make_pair(iterator(node), true);
-			}
-			if (key == max_key)
-				return std::make_pair(end(), true);
-			if (key == min_key)
-				return std::make_pair(begin(), true);
-			if (_cmp(key, min_key)) {
-				_begin->left = allocate_node(key, val.second, _begin);
-				min_key = key;
-				_begin = _begin->left;
-				insertCase1(_begin);
-				return std::make_pair(iterator(_begin), true);
-			}
-			if (!_cmp(key, max_key)) {
-				_end->right = allocate_node(key, val.second, _end);
-				_end = _end->right;
-				max_key = key;
-				insertCase1(_end);
-				return std::make_pair(iterator(_end), true);
-			}
+//			if (!node) {
+//				node = allocate_node(key, val.second, nullptr);
+//				_root = _begin = _end = node;
+//				max_key = min_key = key;
+//				insertCase1(node);
+//				return std::make_pair(iterator(node), true);
+//			}
+//			if (key == max_key)
+//				return std::make_pair(iterator(_end->parent), true);
+//			if (key == min_key)
+//				return std::make_pair(begin(), true);
+//			if (_cmp(key, min_key)) {
+//				node = allocate_node(key, val.second, _begin);
+//				_begin->right = node;
+//				min_key = key;
+//				insertCase1(node);
+//				return std::make_pair(iterator(_begin), true);
+//			}
+//			if (!_cmp(key, max_key)) {
+//				_end->right = allocate_node(key, val.second, _end);
+//				_end = _end->right;
+//				max_key = key;
+//				insertCase1(_end);
+//				return std::make_pair(iterator(_end), true);
+//			}
 			while (node) {
-				if (node->key == key)
+				if (node->key == key && node != _begin && node != _end)
 					break ;
-				else if (_cmp(node->key, key)) {
+				else if ((node == _begin || _cmp(node->key, key)) && node != _end) {
 					if (node->right)
 						node = node->right;
 					else {

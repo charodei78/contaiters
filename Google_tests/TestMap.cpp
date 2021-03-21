@@ -11,7 +11,7 @@
 using mCon =    ft::Map<int, int>;
 using sCon =    std::map<int, int>;
 
-class TestQueue : public ::testing::Test
+class TestMap : public ::testing::Test
 {
 public:
 	sCon sEmpty;
@@ -30,9 +30,8 @@ protected:
 		srand(static_cast<unsigned int>(time(nullptr)));
 		for (int i = 0; i < 10; ++i)
 		{
-			test_value = rand();
-			sTen.insert(std::make_pair(test_value, test_value));
-			mTen.insert(std::make_pair(test_value, test_value));
+			sTen.insert(std::make_pair(i, i));
+			mTen.insert(std::make_pair(i, i));
 		}
 
 		for (int i = 0; i < rand() % 100 + 1; ++i)
@@ -68,14 +67,34 @@ public:
 		}
 		ASSERT_EQ(sBegin == sEnd, mBegin == mEnd);
 	}
+
 };
 
-TEST_F(TestQueue, equalTen)
+
+TEST_F(TestMap, iteratorTest)
+{
+	mCon::iterator mstart = mTen.begin();
+	mCon::iterator mend = mTen.end();
+	sCon::iterator sstart = sTen.begin();
+	sCon::iterator send = sTen.end();
+
+
+//	std::cout << (*(send2)).first << ' ' << std::endl;
+
+	while(send != sstart)
+	{
+		mend--;
+		send--;
+		ASSERT_EQ(*mend, *send);
+	}
+}
+
+TEST_F(TestMap, equalTen)
 {
 	mapComparison(mTen, sTen);
 }
 
-TEST_F(TestQueue, equalRandom)
+TEST_F(TestMap, equalRandom)
 {
 	mapComparison(mRandom, sRandom);
 }
