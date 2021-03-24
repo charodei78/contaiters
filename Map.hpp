@@ -110,7 +110,8 @@ namespace ft {
 		protected:
 			node_pointer _p;
 
-			node_pointer getMore(node_pointer node) {
+		public:
+			static node_pointer getMore(node_pointer node) {
 				if (!node)
 					return node;
 				if (node->right) {
@@ -127,7 +128,7 @@ namespace ft {
 				}
 			};
 
-			node_pointer getLess(node_pointer node) {
+			static node_pointer getLess(node_pointer node) {
 				if (!node)
 					return node;
 				if (node->left) {
@@ -143,7 +144,7 @@ namespace ft {
 					return node->parent;
 				}
 			}
-
+		protected:
 			base_iterator(): _p(nullptr) {};
 			base_iterator(base_iterator const &rhs): _p(nullptr) {
 				this->_p = rhs._p;
@@ -193,8 +194,8 @@ namespace ft {
 			iterator(iterator const &rhs): base_iterator(rhs) {}
 			~iterator(){};
 			node_pointer     base() const { return this->_p; }
+			std::pair<const Key, T&>	_get_value() const { return std::pair<const Key, T&>(this->_p->key, this->_p->value); }
 			value_type 		 operator* () const { return value_type(this->_p->key, this->_p->value); }
-			pointer 		 operator->() const { return pointer(value_type(this->_p->key, this->_p->value)); };
 			iterator&        operator++() { this->_p = this->getMore(this->_p); return *this; };
 			iterator         operator++(int) { iterator tmp(*this); operator++(); return tmp; }
 			iterator&        operator--() { this->_p = this->getLess(this->_p); return *this; };
@@ -213,9 +214,9 @@ namespace ft {
 			const_iterator(): base_iterator() {};
 			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
 			~const_iterator(){};
-			value_type              *base() const { return this->_p; }
-			value_type 		 		operator* () const { return value_type(this->_p->key, this->_p->value); }
-			pointer 		 		operator->() const { return pointer(value_type(this->_p->key, this->_p->value)); };
+			node_pointer             *base() const { return this->_p; }
+			std::pair<const Key, T&>	_get_value() const { return std::pair<const Key, T&>(this->_p->key, this->_p->value); }
+			value_type		  		operator* () const { return value_type(this->_p->key, this->_p->value); }
 			const_iterator&         operator++() { this->_p = this->getMore(this->_p); return *this; };
 			const_iterator          operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
 			const_iterator&         operator--() { this->_p = this->getLess(this->_p); return *this; };
@@ -257,6 +258,8 @@ namespace ft {
 
 		~Map() {
 			clear();
+			_deallocateNode(_begin);
+			_deallocateNode(_end);
 		};
 
 		Map &operator=(Map const &rhs) {
@@ -312,13 +315,14 @@ namespace ft {
 
 //		Element access
 
-		mapped_type& operator[] (const key_type& key) {
-
-			return ((this->insert(make_pair(key,mapped_type()))).first)->second;
+		mapped_type &  operator[] (const key_type& key) {
+			std::pair<iterator,bool> insert = this->insert(value_type(key,mapped_type()));
+			iterator it = insert.first;
+			return it._get_value().second;
 		};
 
 		void clear() {
-
+			erase(begin(), end());
 		};
 
 	private:
@@ -428,115 +432,266 @@ namespace ft {
 				rotateLeft(g);
 		}
 
-		void replaceNode(node_pointer n, node_pointer child)
+		void swapNode(node_pointer n1, node_pointer n2)
 		{
-			child->parent = n->parent;
-			if (n->isLeft())
-				n->parent->left = child;
+			node_base tmp;
+
+			if (n1->parent == n1->left || n1->parent == n1->right || n2->parent == n2->left || n2->parent == n2->right ||
+				n1->parent == n1 || n1 == n1->right || n1 == n1->left || n2->parent == n2 || n2 == n2->right || n2 == n2->left)
+				return;
+			tmp = *n1;
+			*n1 = *n2;
+			if (n2->left)
+				n2->left->parent = n1;
+			if (n2->right)
+				n2->right->parent = n1;
+			if (n2->parent) {
+				if (n2->isLeft())
+					n2->parent->left = n1;
+				else
+					n2->parent->right = n1;
+			} else {
+				_root = n1;
+			}
+
+			*n2 = tmp;
+			if (tmp.left)
+				tmp.left->parent = n2;
+			if (tmp.right)
+				tmp.right->parent = n2;
+			if (tmp.parent) {
+				if (tmp.isLeft())
+					tmp.parent->left = n2;
+				else
+					tmp.parent->right = n2;
+			} else {
+				_root = n2;
+			}
+			if (n1->parent == n1->left || n1->parent == n1->right || n2->parent == n2->left || n2->parent == n2->right)
+				return;
+		}
+
+		bool isRed(node_pointer n) {
+			return n && n->is_red;
+		}
+
+		void copyNode(node_pointer src, node_pointer dst)
+		{
+			dst->value = src->value;
+			dst->key = src->key;
+			if (src == _end)
+				_end = dst;
+			if (src == _begin)
+				_begin = dst;
+		}
+
+		void replaceNode(node_pointer src, node_pointer dst)
+		{
+			dst->parent = src->parent;
+			if (src->isLeft())
+				dst->parent->left = dst;
 			else
-				n->parent->right = child;
+				dst->parent->right = dst;
 		}
 
 		void destroy(node_pointer n)
 		{
-			node_pointer child = n->left ? n->left : n->right;
+			node_pointer child;
+			node_pointer target;
 
-			replaceNode(n, child);
+			if (n->right && n->left) {
+				target = base_iterator::getLess(n);
+				if (target == _begin)
+					target = base_iterator::getMore(n);
+				swapNode(target, n);
+			} else
+				target = n;
+			if (target->left || target->right) { // target не можнет  быть красным
+				child = target->left ? target->left : target->right;
+				if (child == target)
+					return;
+				swapNode(target, child);
+				child->is_red = false;
+				_deallocateNode(target);
+			}
+			else
+				destroyZeroChild(target);
+		}
+
+		void destroyZeroChild(node_pointer n)
+		{
+			if (n->isLeft())
+				n->parent->left = nullptr;
+			else
+				n->parent->right = nullptr;
 			if (!n->is_red)
-			{
-				if (child->is_red)
-					child->is_red = false;
-				else
-					deleteCase1(child);
-			}
-			delete this;
+				balanceTree(n->parent, n->isLeft());
+			_deallocateNode(n);
 		}
 
-		// is root
-		void deleteCase1(node_pointer n)
+
+
+		void balanceTree(node_pointer n, bool leftDeleted)
 		{
-			if (n->parent)
-				deleteCase2(n);
-		}
+			node_pointer child = leftDeleted ? n->right : n->left;
 
-		// sibling is red
-		void deleteCase2(node_pointer n)
-		{
-			node_pointer s = n->sibling();
-
-			if (s->is_red)
-			{
-				n->parent->is_red = true;
-				s->is_red = false;
-				if (n->isLeft())
-					rotateLeft(n);
-				else
-					rotateRight(n);
-			}
-			deleteCase3(n);
-		}
-
-		void deleteCase3(node_pointer n)
-		{
-			node_pointer s = n->sibling();
-
-			if (!n->parent->is_red && !s->is_red && !n->left->is_red && !n->right->is_red)
-			{
-				n->is_red = true;
-				deleteCase1(n->parent);
-			}
-			else
-				deleteCase4(n);
-		}
-
-		void deleteCase4(node_pointer n)
-		{
-			node_pointer s = n->sibling();
-
-			if (n->parent->is_red && !s->is_red && !n->left->is_red && !n->right->is_red)
-			{
-				s->is_red = true;
-				n->parent->is_red = false;
-			}
-			else
-				deleteCase5(n);
-		}
-
-		void deleteCase5(node_pointer n)
-		{
-			node_pointer s = n->sibling();
-
-			if (!s->is_red)
-			{
-				if (n->isLeft() && !n->right->is_red && n->left->is_red)
-				{
-					s->is_red = true;
-					s->left->is_red = false;
-					rotateRight(s);
-				} else if (n->isRight() && n->right->is_red && !n->left->is_red) {
-					s->is_red = true;
-					s->right->is_red = false;
-					rotateLeft(s);
+			if (n->is_red) {
+				if ((!child->left || !child->left->is_red) && (!child->right || !child->right->is_red)) {
+					child->is_red = true;
+					n->is_red = false;
+				}
+				else if ((!child->left && child->left->is_red) || (!child->right && !child->right->is_red)) {
+					n->is_red = false;
+					child->is_red = true;
+					if (leftDeleted)
+						rotateLeft(n);
+					else
+						rotateRight(n);
+				}
+			} else {
+				if (child->is_red) {
+					if (!leftDeleted && child->right && !isRed(child->right->left) && !isRed(child->right->right)) {
+						child->is_red = false;
+						child->right->is_red = true;
+						rotateRight(n);
+					} else if (leftDeleted && child->left && !isRed(child->left->left) && !isRed(child->left->right)) {
+						child->is_red = false;
+						child->left->is_red = true;
+						rotateLeft(n);
+					} else if (!leftDeleted && child->right && isRed(child->right->left) && !isRed(child->right->right)) {
+						child->right->left->is_red = false;
+						rotateLeft(child);
+						rotateRight(n);
+					} else if (leftDeleted && child->left && !isRed(child->left->left) && isRed(child->left->right)) {
+						child->left->right->is_red = false;
+						rotateRight(child);
+						rotateLeft(n);
+				} else {
+						if (!leftDeleted && isRed(child->right)) {
+							child->right->is_red = false;
+							rotateLeft(child);
+							rotateRight(n);
+						} else if (leftDeleted && isRed(child->left)) {
+							child->left->is_red = false;
+							rotateRight(child);
+							rotateLeft(n);
+						}
+						else if (!isRed(child->right) && !isRed(child->left)) {
+							if (leftDeleted)
+								child->right->is_red = true;
+							else
+								child->left->is_red = true;
+							if (n->parent)
+								balanceTree(n->parent, n->isLeft());
+						}
+					}
 				}
 			}
-			deleteCase6(n);
+
 		}
 
-		void deleteCase6(node_pointer n)
-		{
-			node_pointer s = n->sibling();
 
-			s->is_red = n->parent->is_red;
-			n->parent->is_red = false;
-			if (n->isLeft())
-			{
-				s->right->is_red = false;
-				rotateLeft(n->parent);
-			} else {
-				s->left->is_red = false;
-				rotateRight(n->parentparent);
-			}
-		}
+
+//		void destroyOneChild(node_pointer n)
+//		{
+//			node_pointer child = n->left ? n->left : n->right;
+//
+//			replaceNode(n, child);
+//			if (!n->is_red)
+//			{
+//				if (child->is_red)
+//					child->is_red = false;
+//				else
+//					deleteCase1(child);
+//			}
+//			_deallocateNode(n);
+//		}
+//
+//		// is root
+//		void deleteCase1(node_pointer n)
+//		{
+//			if (n->parent)
+//				deleteCase2(n);
+//		}
+//
+//		// sibling is red
+//		void deleteCase2(node_pointer n)
+//		{
+//			node_pointer s = n->sibling();
+//
+//			if (s->is_red)
+//			{
+//				n->parent->is_red = true;
+//				s->is_red = false;
+//				if (n->isLeft())
+//					rotateLeft(n);
+//				else
+//					rotateRight(n);
+//			}
+//			deleteCase3(n);
+//		}
+//
+//		void deleteCase3(node_pointer n)
+//		{
+//			node_pointer s = n->sibling();
+//
+//			if (!n->parent->is_red && !s->is_red && !n->left->is_red && !n->right->is_red)
+//			{
+//				n->is_red = true;
+//				deleteCase1(n->parent);
+//			}
+//			else
+//				deleteCase4(n);
+//		}
+//
+//		void deleteCase4(node_pointer n)
+//		{
+//			node_pointer s = n->sibling();
+//
+//			if (n->parent->is_red && !s->is_red && !n->left->is_red && !n->right->is_red)
+//			{
+//				s->is_red = true;
+//				n->parent->is_red = false;
+//			}
+//			else
+//				deleteCase5(n);
+//		}
+//
+//		void deleteCase5(node_pointer n)
+//		{
+//			node_pointer s = n->sibling();
+//
+//			if (!s->is_red)
+//			{
+//				if (n->isLeft() && !n->right->is_red && n->left->is_red)
+//				{
+//					s->is_red = true;
+//					s->left->is_red = false;
+//					rotateRight(s);
+//				} else if (n->isRight() && n->right->is_red && !n->left->is_red) {
+//					s->is_red = true;
+//					s->right->is_red = false;
+//					rotateLeft(s);
+//				}
+//			}
+//			deleteCase6(n);
+//		}
+//
+//		void deleteCase6(node_pointer n)
+//		{
+//			node_pointer s = n->sibling();
+//
+//			s->is_red = n->parent->is_red;
+//			n->parent->is_red = false;
+//			if (n->isLeft())
+//			{
+//				s->right->is_red = false;
+//				rotateLeft(n->parent);
+//			} else {
+//				s->left->is_red = false;
+//				rotateRight(n->parent);
+//			}
+//		}
 
 	protected:
 		std::pair<iterator,bool> insert (const value_type& val, node_pointer node) {
@@ -616,7 +771,24 @@ namespace ft {
 		};
 
 
+		void erase (iterator position) {
+			destroy(position.base());
+		};
 
+		size_type erase (const key_type& k) {
+			erase(find(k));
+		};
+
+		void erase (iterator first, iterator last) {
+			while (first != last)
+			{
+				erase(first);
+				first++;
+			}
+		};
+
+		iterator find (const key_type& k);
+		const_iterator find (const key_type& k) const;
 
 
 	};

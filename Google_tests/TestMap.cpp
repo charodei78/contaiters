@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 
 #include <map>
+#include <list>
 #include <iterator>
 #include <limits>
 #include <iostream>
@@ -21,20 +22,31 @@ public:
 	mCon mEmpty;
 	mCon mTen;
 	mCon mRandom;
+	std::list<std::pair<int, int>> insertValues;
+
 
 protected:
 	void SetUp()
 	{
 		int test_value;
+		int test_value2;
 
 		srand(static_cast<unsigned int>(time(nullptr)));
+
+		for (int i = 0; i < 20; ++i)
+		{
+			test_value = rand();
+			test_value2 = rand();
+			insertValues.push_back(std::make_pair(test_value,test_value2));
+		}
+
 		for (int i = 0; i < 10; ++i)
 		{
 			sTen.insert(std::make_pair(i, i));
 			mTen.insert(std::make_pair(i, i));
 		}
 
-		for (int i = 0; i < rand() % 100 + 1; ++i)
+		for (int i = 0; i < rand() % 80 + 40; ++i)
 		{
 			test_value = rand();
 			sRandom.insert(std::make_pair(test_value, test_value));
@@ -96,5 +108,42 @@ TEST_F(TestMap, equalTen)
 
 TEST_F(TestMap, equalRandom)
 {
+	mapComparison(mRandom, sRandom);
+}
+
+TEST_F(TestMap, operatorSqareBrackets)
+{
+	mTen[15] = 10;
+	sTen[15] = 10;
+	mapComparison(mTen, sTen);
+}
+
+TEST_F(TestMap, insertTarget)
+{
+	auto mIterator = mTen.insert(std::make_pair(20, 12)).first;
+	mTen.insert(mIterator,std::make_pair(20, 12));
+	auto sIterator = sTen.insert(std::make_pair(20, 12)).first;
+	sTen.insert(sIterator,std::make_pair(20, 12));
+	mapComparison(mTen, sTen);
+}
+
+TEST_F(TestMap, insertRange)
+{
+	mCon mMap;
+	sCon sMap;
+
+	mMap.insert(insertValues.begin(), insertValues.end());
+	sMap.insert(insertValues.begin(), insertValues.end());
+	mapComparison(mTen, sTen);
+}
+
+TEST_F(TestMap, eraseIter)
+{
+	auto mIterator = mRandom.begin();
+	std::advance(mIterator, 10);
+	auto sIterator = sRandom.begin();
+	std::advance(sIterator, 10);
+	mRandom.erase(mIterator);
+	sRandom.erase(sIterator);
 	mapComparison(mRandom, sRandom);
 }
