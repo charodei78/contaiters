@@ -241,23 +241,33 @@ namespace ft {
 		explicit Map (const key_compare& comp = key_compare(),
 		              const allocator_type& alloc = allocator_type())
 		              : _begin(allocate_node(Key(), T())), _end(allocate_node(Key(), T())), _root(_end), _alloc(alloc), _cmp(comp), _size(0), max_key(key_type()), min_key(max_key)
-		              {
-						_begin->parent = _end;
-						_end->left = _begin;
-						_end->is_red = false;
-						_size = 0;
-		              };
+	      {
+		      _begin->parent = _end;
+		      _end->left = _begin;
+		      _end->is_red = false;
+		      _size = 0;
+	      };
 
 		template < class InputIterator >
 		Map (InputIterator first, _ENABLE_INPUT_ITERATOR last,
 				const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
 				: _begin(allocate_node(Key(), T())), _end(allocate_node(Key(), T())), _root(_end), _alloc(alloc), _cmp(comp), _size(0), max_key(key_type()), min_key(max_key)
-			{ insert(first, last); };
+		{
+			_begin->parent = _end;
+			_end->left = _begin;
+			_end->is_red = false;
+			_size = 0;
+			insert(first, last);
+		};
 
 
 		Map (const Map& rhs) : _begin(allocate_node(Key(), T())), _end(allocate_node(Key(), T())), _root(_end), _alloc(allocator_type()), _cmp(key_compare()), _size(0), max_key(key_type()), min_key(max_key)
 		{
+			_begin->parent = _end;
+			_end->left = _begin;
+			_end->is_red = false;
+			_size = 0;
 			insert(rhs.begin(), rhs.end());
 		};
 
@@ -610,6 +620,8 @@ namespace ft {
 			node_pointer x;
 			node_pointer y = z;
 			bool y_original_color = y->is_red;
+			node_pointer tmp1 = nullptr;
+			node_pointer tmp2 = nullptr;
 
 			if (!z->left) {
 				x = z->right;
@@ -624,7 +636,15 @@ namespace ft {
 				y = base_iterator::getMore(z);
 				y_original_color = y->is_red;
 				x = y->right;
-				if (y->parent == z && x)
+				if (!x) {
+					tmp1 = y;
+					x = allocate_node(Key(), T(), y);
+					x->is_red = false;
+					y->right = x;
+					tmp2 = x;
+				}
+
+				if (y->parent == z)
 					x->parent = y;
 				else {
 					transplant(y, y->right);
@@ -638,7 +658,15 @@ namespace ft {
 			}
 			if (!y_original_color)
 				deleteFixup(x);
-			_deallocateNode(z);
+			--_size;
+//			_deallocateNode(z);
+			if (tmp1 && tmp2) {
+				if (tmp2->isLeft())
+					tmp1->left = nullptr;
+				else if (tmp2->isRight())
+					tmp1->right = nullptr;
+				_deallocateNode(tmp2);
+			}
 		}
 
 		void deleteFixup(node_pointer x)
@@ -712,6 +740,43 @@ namespace ft {
 			x->is_red = false;
 		}
 
+//
+//		void threeDelete(node_pointer node)
+//		{
+//			node_pointer y;
+//			node_pointer x;
+//			node_pointer xParent;
+//			bool yIsLeft = false;
+//
+//			if (!node->left || !node->right)
+//				y = node;
+//			else
+//				y = base_iterator::getMore(node);
+//
+//			x = y->left ? y->left : y->right;
+//
+//			if (x)
+//				x->parent = y->parent;
+//			xParent = y->parent;
+//
+//			if (!y->parent)
+//				_root = x;
+//			else if (y->isLeft()) {
+//				y->parent->left = x;
+//				yIsLeft = true;
+//			}
+//			else
+//				y->parent->right = x;
+//
+//			if (y != node)
+//				swapNode(node, y);
+//
+//			if (!node->is_red)
+//				deleteFixUp();
+//
+//
+//
+//		}
 
 		void destroy(node_pointer n)
 		{
