@@ -197,7 +197,12 @@ namespace ft {
 			node_pointer     base() const { return this->_p; }
 			std::pair<const Key, T&>	_get_value() const { return std::pair<const Key, T&>(this->_p->key, this->_p->value); }
 			value_type 		 operator* () const { return value_type(this->_p->key, this->_p->value); }
-			iterator&        operator++() { this->_p = this->getMore(this->_p); return *this; };
+			iterator&        operator++() {
+				node_pointer tmp = this->_p;
+				this->_p = this->getMore(this->_p);
+				if (!this->_p)
+					return *this;
+				return *this; };
 			iterator         operator++(int) {
 				iterator tmp(*this);
 				operator++();
@@ -272,9 +277,9 @@ namespace ft {
 		};
 
 		~Map() {
-//			clear();
-//			_deallocateNode(_begin);
-//			_deallocateNode(_end);
+			clear();
+			_deallocateNode(_begin);
+			_deallocateNode(_end);
 		};
 
 		Map &operator=(Map const &rhs) {
@@ -610,18 +615,79 @@ namespace ft {
 			if (!n1->parent)
 				_root = n2;
 			else if (n1->isLeft())
+				n1->parent->left = n2;
+			else
 				n1->parent->right = n2;
 			if (n2)
 				n2->parent = n1->parent;
 		}
+
+//		void treeDelete(node_pointer z)
+//		{
+//			node_pointer x;
+//			node_pointer y = z;
+//			bool y_original_color = y->is_red;
+//			node_pointer 	tmp1 = nullptr;
+//			node_base 		nil;
+//
+//			nil.parent = nullptr;
+//			nil.left = nullptr;
+//			nil.right = nullptr;
+//
+//			if (!z->left) {
+//				x = z->right;
+//				transplant(z, z->right);
+//			}
+//			else if (!z->right) {
+//				x = z->left;
+//				transplant(z, z->left);
+//			}
+//			else
+//			{
+//				y = base_iterator::getMore(z);
+//				y_original_color = y->is_red;
+//				x = y->right;
+//				if (!x) {
+//					tmp1 = y;
+//					x = &nil;
+//					x->is_red = false;
+//					y->right = x;
+//				}
+//
+//				if (y->parent == z)
+//					x->parent = y;
+//				else {
+//					transplant(y, y->right);
+//					y->right = z->right;
+//					y->right->parent = y;
+//				}
+//				transplant(z, y);
+//				y->left = z->left;
+//				y->left->parent = y;
+//				y->is_red = z->is_red;
+//			}
+//			if (!y_original_color)
+//				deleteFixup(x);
+//			--_size;
+////			_deallocateNode(z);
+//			if (nil.parent) {
+//				tmp1->right = nullptr;
+//			}
+//		}
 
 		void treeDelete(node_pointer z)
 		{
 			node_pointer x;
 			node_pointer y = z;
 			bool y_original_color = y->is_red;
-			node_pointer tmp1 = nullptr;
-			node_pointer tmp2 = nullptr;
+			node_pointer 	tmp1 = nullptr;
+			node_base 		nil;
+
+			if (z == _end || z == _begin)
+				return;
+			nil.parent = nullptr;
+			nil.left = nullptr;
+			nil.right = nullptr;
 
 			if (!z->left) {
 				x = z->right;
@@ -638,10 +704,9 @@ namespace ft {
 				x = y->right;
 				if (!x) {
 					tmp1 = y;
-					x = allocate_node(Key(), T(), y);
+					x = &nil;
 					x->is_red = false;
 					y->right = x;
-					tmp2 = x;
 				}
 
 				if (y->parent == z)
@@ -658,14 +723,14 @@ namespace ft {
 			}
 			if (!y_original_color)
 				deleteFixup(x);
-			--_size;
-//			_deallocateNode(z);
-			if (tmp1 && tmp2) {
-				if (tmp2->isLeft())
-					tmp1->left = nullptr;
-				else if (tmp2->isRight())
-					tmp1->right = nullptr;
-				_deallocateNode(tmp2);
+//			--_size;
+			_deallocateNode(z);
+			if (nil.parent) {
+				if (nil.isRight())
+					nil.parent->right = nullptr;
+				else if (nil.isLeft())
+					nil.parent->left = nullptr;
+//				tmp1->right = nullptr;
 			}
 		}
 

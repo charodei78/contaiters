@@ -136,17 +136,22 @@ TEST_F(TestMap, insertRange)
 	sMap.insert(insertValues.begin(), insertValues.end());
 	mapComparison(mTen, sTen);
 }
-//
-//TEST_F(TestMap, eraseIter)
-//{
-//	auto mIterator = mRandom.begin();
-//	std::advance(mIterator, 10);
-//	auto sIterator = sRandom.begin();
-//	std::advance(sIterator, 10);
-//	mRandom.erase(mIterator);
-//	sRandom.erase(sIterator);
-//	mapComparison(mRandom, sRandom);
-//}
+
+TEST_F(TestMap, eraseTen)
+{
+	mTen.erase(mTen.begin(), mTen.end());
+}
+
+TEST_F(TestMap, eraseIter)
+{
+	auto mIterator = mRandom.begin();
+	std::advance(mIterator, 10);
+	auto sIterator = sRandom.begin();
+	std::advance(sIterator, 10);
+	mRandom.erase(mIterator);
+	sRandom.erase(sIterator);
+	mapComparison(mRandom, sRandom);
+}
 
 TEST_F(TestMap, erase2Iter)
 {
