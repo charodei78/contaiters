@@ -277,17 +277,146 @@ TEST_F(TestMap, clear)
 
 TEST_F(TestMap, value_compare)
 {
-	ft::Map<char,int> mymap;
+	ft::Map<char,int> map;
 
-	mymap['x']=1001;
-	mymap['y']=2002;
-	mymap['z']=3003;
+	map['y']=2002;
+	map['z']=3003;
 
-	std::cout << *(mymap.rbegin());
-//	std::pair<char,int> highest = *(mymap.rbegin());          // last element
-//
-//	ft::Map<char,int>::iterator it = mymap.begin();
-//	do {
-//		std::cout << (*it).first << " => " << (*it).second << '\n';
-//	} while ( mymap.value_comp()(*it++, highest) );
+	std::pair<char,int> highest = *(map.rbegin());
+	std::pair<char,int> less = *(++map.rbegin());
+
+	ASSERT_EQ(map.value_comp()(less, highest), true);
+	ASSERT_EQ(map.value_comp()(highest, less), false);
+}
+
+TEST_F(TestMap, key_compare)
+{
+	ft::Map<char,int> map;
+
+	map['y']=2002;
+	map['z']=3003;
+
+	std::pair<char,int> highest = *(map.rbegin());
+	std::pair<char,int> less = *(++map.rbegin());
+
+	ASSERT_EQ(map.key_comp()(less.first, highest.first), true);
+	ASSERT_EQ(map.key_comp()(highest.first, less.first), false);
+}
+
+
+TEST_F(TestMap, couont)
+{
+	ft::Map<char,int> map;
+
+	map['y']=2002;
+	map['z']=3003;
+
+	ASSERT_EQ(map.count('y'), 1);
+	ASSERT_EQ(map.count('z'), 1);
+	ASSERT_EQ(map.count('s'), 0);
+}
+
+TEST_F(TestMap, upper_bound)
+{
+	ft::Map<char,int> mMap;
+	ft::Map<char,int> sMap;
+
+	sMap['a']=2002;
+	sMap['b']=3003;
+	sMap['c']=3003;
+	sMap['e']=3003;
+	sMap['f']=3003;
+	sMap['j']=3003;
+	sMap['z']=3003;
+	sMap['s']=3003;
+
+	mMap['a']=2002;
+	mMap['b']=3003;
+	mMap['c']=3003;
+	mMap['e']=3003;
+	mMap['f']=3003;
+	mMap['j']=3003;
+	mMap['z']=3003;
+	mMap['s']=3003;
+
+
+	ASSERT_EQ(sMap.upper_bound('a')->first, mMap.upper_bound('a')->first);
+	ASSERT_EQ(sMap.upper_bound('b')->first, mMap.upper_bound('b')->first);
+	ASSERT_EQ(sMap.upper_bound('c')->first, mMap.upper_bound('c')->first);
+	ASSERT_EQ(sMap.upper_bound('e')->first, mMap.upper_bound('e')->first);
+	ASSERT_EQ(sMap.upper_bound('f')->first, mMap.upper_bound('f')->first);
+	ASSERT_EQ(sMap.upper_bound('j')->first, mMap.upper_bound('j')->first);
+	ASSERT_EQ(sMap.upper_bound('m')->first, mMap.upper_bound('m')->first);
+	ASSERT_EQ(sMap.upper_bound('n')->first, mMap.upper_bound('n')->first);
+	ASSERT_EQ(sMap.upper_bound('z')->first, mMap.upper_bound('z')->first);
+	ASSERT_EQ(sMap.upper_bound('s')->first, mMap.upper_bound('s')->first);
+}
+
+
+TEST_F(TestMap, lower_bound)
+{
+	ft::Map<char,int> mMap;
+	ft::Map<char,int> sMap;
+
+	sMap['a']=2002;
+	sMap['b']=3003;
+	sMap['c']=3003;
+	sMap['e']=3003;
+	sMap['f']=3003;
+	sMap['j']=3003;
+	sMap['z']=3003;
+	sMap['s']=3003;
+
+	mMap['a']=2002;
+	mMap['b']=3003;
+	mMap['c']=3003;
+	mMap['e']=3003;
+	mMap['f']=3003;
+	mMap['j']=3003;
+	mMap['z']=3003;
+	mMap['s']=3003;
+
+
+	ASSERT_EQ(sMap.lower_bound('a')->first, mMap.lower_bound('a')->first);
+	ASSERT_EQ(sMap.lower_bound('b')->first, mMap.lower_bound('b')->first);
+	ASSERT_EQ(sMap.lower_bound('c')->first, mMap.lower_bound('c')->first);
+	ASSERT_EQ(sMap.lower_bound('e')->first, mMap.lower_bound('e')->first);
+	ASSERT_EQ(sMap.lower_bound('f')->first, mMap.lower_bound('f')->first);
+	ASSERT_EQ(sMap.lower_bound('m')->first, mMap.lower_bound('m')->first);
+	ASSERT_EQ(sMap.lower_bound('n')->first, mMap.lower_bound('n')->first);
+	ASSERT_EQ(sMap.lower_bound('j')->first, mMap.lower_bound('j')->first);
+	ASSERT_EQ(sMap.lower_bound('z')->first, mMap.lower_bound('z')->first);
+	ASSERT_EQ(sMap.lower_bound('s')->first, mMap.lower_bound('s')->first);
+}
+
+TEST_F(TestMap, equal_range)
+{
+	ft::Map<char,int> mMap;
+	ft::Map<char,int> sMap;
+
+	sMap['a']=2002;
+	sMap['b']=3003;
+	sMap['j']=3003;
+	sMap['z']=3003;
+	sMap['s']=3003;
+
+	mMap['a']=2002;
+	mMap['b']=3003;
+	mMap['j']=3003;
+	mMap['z']=3003;
+	mMap['s']=3003;
+
+
+	ASSERT_EQ(sMap.equal_range('a').first->first, mMap.equal_range('a').first->first);
+	ASSERT_EQ(sMap.equal_range('a').second->first, mMap.equal_range('a').second->first);
+	ASSERT_EQ(sMap.equal_range('b').first->first, mMap.equal_range('b').first->first);
+	ASSERT_EQ(sMap.equal_range('b').second->first, mMap.equal_range('b').second->first);
+	ASSERT_EQ(sMap.equal_range('c').first->first, mMap.equal_range('c').first->first);
+	ASSERT_EQ(sMap.equal_range('c').second->first, mMap.equal_range('c').second->first);
+	ASSERT_EQ(sMap.equal_range('n').first->first, mMap.equal_range('n').first->first);
+	ASSERT_EQ(sMap.equal_range('n').second->first, mMap.equal_range('n').second->first);
+	ASSERT_EQ(sMap.equal_range('z').first->first, mMap.equal_range('z').first->first);
+	ASSERT_EQ(sMap.equal_range('z').second->first, mMap.equal_range('z').second->first);
+	ASSERT_EQ(sMap.equal_range('s').first->first, mMap.equal_range('s').first->first);
+	ASSERT_EQ(sMap.equal_range('s').second->first, mMap.equal_range('s').second->first);
 }

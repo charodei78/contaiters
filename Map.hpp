@@ -20,8 +20,7 @@ struct node
 	node 				*left;
 	node 				*right;
 	node 				*parent;
-	Key 				key;
-	T	 				value;
+	std::pair<Key, T>	pair;
 	bool 				is_red;
 
 	bool isLeft()
@@ -73,21 +72,20 @@ namespace ft {
 	public:
 		class iterator;
 		class const_iterator;
+		class reverse_iterator;
+		class const_reverse_iterator;
 		class value_compare;
 
 		typedef Key                                                 key_type;
 		typedef T                                                   mapped_type;
 		typedef std::pair<const key_type, mapped_type>        		value_type;
 		typedef Compare                                             key_compare;
-		typedef value_compare                                       value_comp;
 		typedef Alloc                                               allocator_type;
 		typedef typename allocator_type::pointer                    pointer;
 		typedef typename allocator_type::const_pointer              const_pointer;
 		typedef typename allocator_type::reference                  reference;
 		typedef typename allocator_type::const_reference            const_reference;
 		typedef ptrdiff_t                                           difference_type;
-		typedef std::reverse_iterator<iterator>						reverse_iterator;
-		typedef std::reverse_iterator<const_iterator>				const_reverse_iterator;
 		typedef size_t                                              size_type;
 
 	private:
@@ -111,7 +109,6 @@ namespace ft {
 		{
 		protected:
 			node_pointer _p;
-			value_type 	pair;
 
 		public:
 			static node_pointer getMore(node_pointer node) {
@@ -175,6 +172,11 @@ namespace ft {
 				this->_p = rhs._p;
 				return *this;
 			};
+
+			virtual base_iterator &operator=(const reverse_iterator &rhs){
+				this->_p = rhs._p;
+				return *this;
+			};
 		};
 
 		node_pointer			allocate_node(Key key, T value = T(), node_pointer parent = nullptr) {
@@ -183,8 +185,8 @@ namespace ft {
 			node = _node_alloc(_alloc).allocate(1);
 
 			++_size;
-			node->key = key;
-			node->value = value;
+			node->pair.first = key;
+			node->pair.second = value;
 			node->left = nullptr;
 			node->right = nullptr;
 			node->is_red = true;
@@ -206,8 +208,8 @@ namespace ft {
 			iterator(): base_iterator() {};
 			iterator(iterator const &rhs): base_iterator(rhs) {}
 			~iterator(){};
-			std::pair<const Key, T&>	_get_value() const { return std::pair<const Key, T&>(this->_p->key, this->_p->value); }
-			value_type 		 operator* () const { return value_type(this->_p->key, this->_p->value); }
+			reference 		 operator* () const { return reference(this->_p->pair); }
+			pointer 		 operator->() const { return pointer (&this->_p->pair); }
 			iterator&        operator++() {
 				node_pointer tmp = this->_p;
 				this->_p = this->getMore(this->_p);
@@ -235,8 +237,8 @@ namespace ft {
 			const_iterator(): base_iterator() {};
 			const_iterator(base_iterator const &rhs): base_iterator(rhs) {};
 			~const_iterator(){};
-			std::pair<const Key, T&>	_get_value() const { return std::pair<const Key, T&>(this->_p->key, this->_p->value); }
-			value_type		  		operator* () const { return value_type(this->_p->key, this->_p->value); }
+			reference 		 		operator* () const { return reference(this->_p->pair); }
+			pointer 				operator->() const { return pointer (&this->_p->pair); }
 			const_iterator&         operator++() { this->_p = this->getMore(this->_p); return *this; };
 			const_iterator          operator++(int) { const_iterator tmp(*this); operator++(); return tmp; }
 			const_iterator&         operator--() { this->_p = this->getLess(this->_p); return *this; };
@@ -248,6 +250,59 @@ namespace ft {
 				return *this;
 			}
 			const_iterator 			&operator=(iterator const &rhs) {
+				base_iterator::operator=(rhs);
+				return *this;
+			};
+		};
+
+		class reverse_iterator: public base_iterator {
+		public:
+			reverse_iterator(node_pointer p): base_iterator(p) {};
+			reverse_iterator(): base_iterator() {};
+			reverse_iterator(reverse_iterator const &rhs): base_iterator(rhs) {}
+			~reverse_iterator(){};
+			reference 		 operator* () const { return reference(this->_p->pair); }
+			pointer 		 operator->() const { return pointer (&this->_p->pair); }
+			reverse_iterator&        operator++() {
+				node_pointer tmp = this->_p;
+				this->_p = this->getMore(this->_p);
+				if (!this->_p)
+					return *this;
+				return *this; };
+			reverse_iterator         operator++(int) {
+				reverse_iterator tmp(*this);
+				operator++();
+				return tmp;
+			}
+			reverse_iterator&        operator--() { this->_p = this->getLess(this->_p); return *this; };
+			reverse_iterator         operator--(int) { reverse_iterator tmp(*this); operator--(); return tmp; }
+			bool             operator==(reverse_iterator const&rhs) const { return this->_p == rhs._p; }
+			bool             operator!=(reverse_iterator const&rhs) const { return !(*this == rhs); }
+			reverse_iterator         &operator=(reverse_iterator const &rhs) {
+				this->_p = rhs._p;
+				return *this;
+			};
+		};
+
+		class const_reverse_iterator: public base_iterator {
+		public:
+			const_reverse_iterator(node_pointer p): base_iterator(p) {};
+			const_reverse_iterator(): base_iterator() {};
+			const_reverse_iterator(base_iterator const &rhs): base_iterator(rhs) {};
+			~const_reverse_iterator(){};
+			reference 		 		operator* () const { return reference(this->_p->pair); }
+			pointer 				operator->() const { return pointer (&this->_p->pair); }
+			const_reverse_iterator&         operator--() { this->_p = this->getMore(this->_p); return *this; };
+			const_reverse_iterator          operator--(int) { const_reverse_iterator tmp(*this); operator++(); return tmp; }
+			const_reverse_iterator&         operator++() { this->_p = this->getLess(this->_p); return *this; };
+			const_reverse_iterator          operator++(int) { const_reverse_iterator tmp(*this); operator--(); return tmp; }
+			bool                    operator==(const_reverse_iterator const&rhs) const { return this->_p == rhs._p; }
+			bool                    operator!=(const_reverse_iterator const&rhs) const { return !(*this == rhs); }
+			const_reverse_iterator          &operator=(const_reverse_iterator const &rhs) {
+				this->_p = rhs._p;
+				return *this;
+			}
+			const_reverse_iterator 			&operator=(reverse_iterator const &rhs) {
 				base_iterator::operator=(rhs);
 				return *this;
 			};
@@ -316,20 +371,16 @@ namespace ft {
 			return const_iterator(_end);
 		};
 		reverse_iterator			rbegin() {
-			return reverse_iterator(_end);
+			return reverse_iterator(base_iterator::getLess(_end));
 		};
 		const_reverse_iterator		rbegin() const {
-			return const_reverse_iterator(_end);
+			return const_reverse_iterator(base_iterator::getLess(_end));
 		};
 		reverse_iterator			rend() {
-			if (_begin->right)
-				return reverse_iterator(_begin->right);
-			return reverse_iterator(_begin->parent);
+			return reverse_iterator(_begin);
 		};
 		const_reverse_iterator		rend() const {
-			if (_begin->right)
-				return const_reverse_iterator(_begin->right);
-			return const_reverse_iterator(_begin->parent);
+			return const_reverse_iterator(_begin);
 		};
 
 //		Capacity
@@ -348,7 +399,7 @@ namespace ft {
 		mapped_type &  operator[] (const key_type& key) {
 			std::pair<iterator,bool> insert = this->insert(value_type(key,mapped_type()));
 			iterator it = insert.first;
-			return it._get_value().second;
+			return it->second;
 		};
 
 		void clear() {
@@ -456,11 +507,11 @@ namespace ft {
 			*n2 = *n1;
 			*n1 = tmp;
 
-			n1->value = n2->value;
-			n2->value = tmp.value;
+			n1->pair.second = n2->pair.second;
+			n2->pair.second = tmp.value;
 
-			n1->key = n2->key;
-			n2->key = tmp.key;
+			n1->pair.first = n2->pair.first;
+			n2->pair.first = tmp.key;
 
 			if (n1 == _begin || n2 == _begin)
 				_begin = n2 == _begin ? n1 : n2;
@@ -716,9 +767,9 @@ namespace ft {
 			if (!node)
 				node = _root;
 			while (node) {
-				if (node->key == key && node != _begin && node != _end)
+				if (node->pair.first == key && node != _begin && node != _end)
 					break ;
-				else if ((node == _begin || _cmp(node->key, key)) && node != _end) {
+				else if ((node == _begin || _cmp(node->pair.first, key)) && node != _end) {
 					if (node->right)
 						node = node->right;
 					else {
@@ -816,38 +867,44 @@ namespace ft {
 			return _cmp;
 		}
 
-		class value_compare
+		value_compare value_comp() const {
+			return value_compare();
+		}
+
+		struct  value_compare: public std::binary_function<value_type, value_type, bool>
 		{
-//			friend class map;
-		protected:
-			Compare comp;
-			value_compare (Compare c) : comp(c) {}  // constructed with map's comparison object
-		public:
-			typedef bool result_type;
-			typedef value_type first_argument_type;
-			typedef value_type second_argument_type;
-			bool operator() (const value_type& x, const value_type& y) const
-			{
-				return comp(x.first, y.first);
-			}
+			bool operator()(const value_type& __x, const value_type& __y) const
+			{return Compare()(__x.first, __y.first);}
 		};
 
 
+
 	protected:
-		iterator findNode(const key_type& k) const
+		node_pointer findNode(const key_type& k, bool get_approximate = false) const
 		{
 			node_pointer node;
+			node_pointer tmp;
 
 			node = _root;
 			while (node && node != _begin && node != _end)
 			{
-				if (node->key == k)
+				if (node->pair.first == k)
 					return node;
-				else if (_cmp(k, node->key))
-					node = base_iterator::getLess(node);
-				else
-					node = base_iterator::getMore(node);
+				else if (_cmp(k, node->pair.first)) {
+					tmp = base_iterator::getLess(node);
+					if (_cmp(tmp->pair.first, k))
+						break;
+					node = tmp;
+				}
+				else {
+					tmp = base_iterator::getMore(node);
+					if (_cmp(k, tmp->pair.first))
+						break;
+					node = tmp;
+				}
 			}
+			if (get_approximate)
+				return node;
 			return _end;
 		}
 
@@ -860,6 +917,58 @@ namespace ft {
 		const_iterator find (const key_type& k) const {
 			return const_iterator(findNode(k));
 		}
+
+
+		size_type count (const key_type& k) const {
+			return findNode(k) == _end ? 0 : 1;
+		}
+
+		iterator lower_bound (const key_type& k) {
+			node_pointer node = findNode(k, true);
+
+			if (node->pair.first == k)
+				return iterator(node);
+			node = base_iterator::getMore(node);
+			return (iterator(node ? node : _end));
+		};
+
+		const_iterator lower_bound (const key_type& k) const {
+			node_pointer node = findNode(k, true);
+
+			if (node->pair.first == k)
+				return iterator(node);
+			node = base_iterator::getMore(node);
+			return (const_iterator(node ? node : _end));
+		};
+
+		iterator upper_bound (const key_type& k) {
+			node_pointer node = findNode(k, true);
+
+			node = base_iterator::getMore(node);
+			return (iterator(node ? node : _end));
+		};
+
+		const_iterator upper_bound (const key_type& k) const {
+			node_pointer node = findNode(k, true);
+
+			node = base_iterator::getMore(node);
+			return (const_iterator(node ? node : _end));
+		};
+
+		std::pair<const_iterator,const_iterator> equal_range (const key_type& k) const {
+			iterator tmp = lower_bound(k);
+			return std::make_pair(tmp, tmp);
+		};
+
+		std::pair<iterator,iterator> equal_range (const key_type& k) {
+			iterator tmp = lower_bound(k);
+			return std::make_pair(tmp, tmp);
+		};
+
+		allocator_type get_allocator() const {
+			return _alloc;
+		};
+
 	};
 }
 
